@@ -34,7 +34,7 @@ sortFiles fileList = map toString ( sort (map toInt fileList))
 main :: IO ()
 main =
   dataFiles >>= \fileList ->
-  scotty 3000 $ do
+  scotty 80 $ do
     get "/" $ file "frontend/index.html"
     get "/files.json" $ json $ sortFiles $ map formatFile fileList
     traverse_ fileToRoute fileList
