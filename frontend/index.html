@@ -8103,6 +8103,11 @@ var $elm$html$Html$Events$onClick = function (msg) {
 		'click',
 		$elm$json$Json$Decode$succeed(msg));
 };
+var $author$project$Main$titleList = A3(
+	$author$project$Main$ReadRow,
+	'Book Title',
+	$elm$core$Maybe$Just('Book Info'),
+	$elm$core$Maybe$Just('Date Finished'));
 var $author$project$Main$displayRList = F2(
 	function (csv, file) {
 		return A2(
@@ -8133,7 +8138,10 @@ var $author$project$Main$displayRList = F2(
 							A2($elm$html$Html$Attributes$style, 'width', '75%'),
 							A2($elm$html$Html$Attributes$style, 'margin', 'auto')
 						]),
-					A2($elm$core$List$indexedMap, $author$project$Main$mapToRowDiv, csv)),
+					A2(
+						$elm$core$List$indexedMap,
+						$author$project$Main$mapToRowDiv,
+						A2($elm$core$List$cons, $author$project$Main$titleList, csv))),
 					A2(
 					$elm$html$Html$div,
 					_List_fromArray(

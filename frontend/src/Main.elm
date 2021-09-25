@@ -267,10 +267,13 @@ formatFileName file =
     Nothing -> ""
     Just fp -> fp.name
 
+titleList : ReadRow
+titleList = ReadRow "Book Title" (Just "Book Info") (Just "Date Finished")
+
 displayRList : List ReadRow -> Maybe File -> Html Msg
 displayRList csv file = div [style "margin" "auto"] 
   [  h1 [style "text-align" "center"] [text <| "Read in: " ++ formatFileName file]
-  ,  div [style "display" "flex", style "flex-direction" "column", style "width" "75%", style "margin" "auto"] (List.indexedMap mapToRowDiv csv)
+  ,  div [style "display" "flex", style "flex-direction" "column", style "width" "75%", style "margin" "auto"] (List.indexedMap mapToRowDiv (titleList :: csv))
   , div [style "text-align" "center"] [button [onClick Return][text "Go back"]]
   ]
 
