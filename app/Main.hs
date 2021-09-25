@@ -6,10 +6,10 @@ import Data.Foldable
 import Data.String
 import Data.List (sort)
 import System.Directory (listDirectory)
-import System.Environment (getEnv)
+import System.Environment (lookupEnv)
 
-port :: IO String
-port = getEnv "PORT"
+port :: IO (Maybe String)
+port = lookupEnv "PORT"
 
 path :: FilePath
 path = "data/"
@@ -36,10 +36,10 @@ sortFiles :: [String] -> [String]
 sortFiles fileList = map toString ( sort (map toInt fileList))
 
 main :: IO ()
-main =
-  port >>= \portNumber ->
-  dataFiles >>= \fileList ->
-  scotty (read portNumber)  $ do
+main = do
+  portNumber <- port
+  fileList <- dataFiles
+  scotty (maybe 3000 read portNumber)  $ do
     get "/" $ file "frontend/index.html"
     get "/files.json" $ json $ sortFiles $ map formatFile fileList
     traverse_ fileToRoute fileList

@@ -208,6 +208,7 @@ getName : String -> String
 getName name = case String.length name of
   1 -> case name of
     "J" -> "Jack"
+    "R" -> "Jenny"
     "Z" -> "Jamie"
     "C" -> "Ciara"
     "H" -> "Harriet"
