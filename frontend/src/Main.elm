@@ -10,6 +10,7 @@ import Json.Decode as D
 import Parser as P exposing (oneOf, Parser, token, (|.), (|=), succeed, symbol, variable)
 import Debug exposing (toString)
 import Set
+import String as S exposing (cons, uncons, reverse)
 
 -- Main
 main =
@@ -57,6 +58,25 @@ type Msg
   | GetCSV File
   | GotCSV (Result Http.Error String)
   | Return
+
+stripLeft : String -> String
+stripLeft str = case uncons str of
+  Just (c, rest) -> if c/=' ' then S.cons c rest else stripLeft rest
+  Nothing -> ""
+
+stripRight : String -> String
+stripRight = reverse << stripLeft << reverse
+
+stripString : String -> String
+stripString = stripRight << stripLeft
+
+firstUpper : String -> String
+firstUpper str = case S.uncons str of
+  Just (c, rest) -> S.cons (Char.toUpper c) rest
+  Nothing -> ""
+
+toTitleCase : String -> String
+toTitleCase str = S.join " " (List.map firstUpper <| S.words str)
 
 parseCsv : String -> Result Error CSV
 parseCsv str = 
@@ -174,11 +194,11 @@ shortstory =
 
 nonfiction =
   succeed NonFiction
-    |. token "•"
+    |. token "o"
 
 graphicnovel =
   succeed GraphicNovel
-    |. token "π"
+    |. token "l"
 
 play =
   succeed Play
@@ -233,17 +253,17 @@ formatReadingNote maybeNote =
 parse : Maybe String -> List ReadingNote
 parse str = case str of
   Just note ->
-    case P.run (many parseReadingNote) note of
+    case P.run (many parseReadingNote) (stripString note) of
       Ok notes -> notes
-      Err a -> [NoteError (toString a)]
+      Err a -> [NoteError (toString a), NoteError(note)]
   Nothing -> []
 
 -- Format Csv
 
 mapToDiv: Int -> (String -> a -> Html Msg) -> a -> Html Msg
 mapToDiv idx spefDiv item = if (modBy 2 idx == 1)
-                            then spefDiv "#afeeee" item
-                            else spefDiv "#ffffff" item
+                            then spefDiv "oddrow" item
+                            else spefDiv "evenrow" item
 
 mapToRowDiv : Int -> ReadRow -> Html Msg
 mapToRowDiv idx csv = mapToDiv idx rowDiv csv
@@ -251,14 +271,17 @@ mapToRowDiv idx csv = mapToDiv idx rowDiv csv
 formatDate : Maybe String -> String
 formatDate str =
   case str of
-    Just date -> String.slice 1 -1 date
+    Just date -> String.slice 1 -1 (stripString date)
     Nothing -> ""
 
 rowDiv : String -> ReadRow -> Html Msg
-rowDiv color csv = div [style "display" "flex", style "flex-direction" "row", style "justify-content" "space-around"] 
-  [ div [style "background-color" color, style "width" "33%"] [text csv.book_title]
-  , div [style "background-color" color, style "width" "33%"] [text (String.join ", " (List.map formatReadingNote ( parse csv.reading_note)))]
-  , div [style "background-color" color, style "width" "33%"] [text (formatDate csv.date)]
+rowDiv classname csv = classDiv classname (toTitleCase csv.book_title) (String.join ", " (List.map formatReadingNote (parse csv.reading_note)))  (formatDate csv.date)
+
+classDiv : String -> String -> String -> String -> Html Msg
+classDiv classname text1 text2 text3 = div [style "display" "flex", style "flex-direction" "row", style "justify-content" "space-around"] 
+  [ div [class classname, style "width" "33%"] [text text1]
+  , div [class classname, style "width" "33%"] [text text2]
+  , div [class classname, style "width" "33%"] [text text3]
   ]
 
 formatFileName : Maybe File -> String
@@ -267,13 +290,11 @@ formatFileName file =
     Nothing -> ""
     Just fp -> fp.name
 
-titleList : ReadRow
-titleList = ReadRow "Book Title" (Just "Book Info") (Just "Date Finished")
 
 displayRList : List ReadRow -> Maybe File -> Html Msg
 displayRList csv file = div [style "margin" "auto"] 
   [  h1 [style "text-align" "center"] [text <| "Read in: " ++ formatFileName file]
-  ,  div [style "display" "flex", style "flex-direction" "column", style "width" "75%", style "margin" "auto"] (List.indexedMap mapToRowDiv (titleList :: csv))
+  ,  div [style "display" "flex", style "flex-direction" "column", style "width" "75%", style "margin" "auto"] ((classDiv "header" "Book Title" "Book Info" "Date Finished" ) :: List.indexedMap mapToRowDiv csv)
   , div [style "text-align" "center"] [button [onClick Return][text "Go back"]]
   ]
 

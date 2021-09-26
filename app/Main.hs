@@ -41,6 +41,8 @@ main = do
   fileList <- dataFiles
   scotty (maybe 3000 read portNumber)  $ do
     get "/" $ file "frontend/index.html"
+    get "/elm.js" $ file "frontend/elm.js"
+    get "/style.css" $ file "frontend/style.css"
     get "/files.json" $ json $ sortFiles $ map formatFile fileList
     traverse_ fileToRoute fileList
 
