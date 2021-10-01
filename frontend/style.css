@@ -1,0 +1,14 @@
+.evenrow {
+  background-color: #ffffff
+}
+
+.oddrow {
+  background-color: #afeeee
+}
+
+.header {
+  background-color: #ffffff;
+  font-weight: bold;
+  text-decoration: underline;
+}
+
