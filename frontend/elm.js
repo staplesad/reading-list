@@ -5449,12 +5449,12 @@ var $elm$core$Task$perform = F2(
 				A2($elm$core$Task$map, toMessage, task)));
 	});
 var $elm$browser$Browser$element = _Browser_element;
-var $author$project$Main$Loading = {$: 'Loading'};
-var $author$project$Main$Model = F3(
+var $author$project$Messaging$Loading = {$: 'Loading'};
+var $author$project$Messaging$Model = F3(
 	function (status, file, fileList) {
 		return {file: file, fileList: fileList, status: status};
 	});
-var $author$project$Main$GotFileList = function (a) {
+var $author$project$Messaging$GotFileList = function (a) {
 	return {$: 'GotFileList', a: a};
 };
 var $elm$json$Json$Decode$decodeString = _Json_runOnString;
@@ -6249,12 +6249,12 @@ var $elm$http$Http$get = function (r) {
 };
 var $author$project$Main$getFileList = $elm$http$Http$get(
 	{
-		expect: A2($elm$http$Http$expectJson, $author$project$Main$GotFileList, $author$project$Main$fileDecoder),
+		expect: A2($elm$http$Http$expectJson, $author$project$Messaging$GotFileList, $author$project$Main$fileDecoder),
 		url: '/files.json'
 	});
 var $author$project$Main$init = function (_v0) {
 	return _Utils_Tuple2(
-		A3($author$project$Main$Model, $author$project$Main$Loading, $elm$core$Maybe$Nothing, _List_Nil),
+		A3($author$project$Messaging$Model, $author$project$Messaging$Loading, $elm$core$Maybe$Nothing, _List_Nil),
 		$author$project$Main$getFileList);
 };
 var $elm$core$Platform$Sub$batch = _Platform_batch;
@@ -6262,14 +6262,17 @@ var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
 var $author$project$Main$subscriptions = function (_v0) {
 	return $elm$core$Platform$Sub$none;
 };
-var $author$project$Main$Failure = function (a) {
+var $author$project$Messaging$Failure = function (a) {
 	return {$: 'Failure', a: a};
 };
-var $author$project$Main$Index = {$: 'Index'};
-var $author$project$Main$Success = function (a) {
+var $author$project$Messaging$File = function (name) {
+	return {name: name};
+};
+var $author$project$Messaging$Index = {$: 'Index'};
+var $author$project$Messaging$Success = function (a) {
 	return {$: 'Success', a: a};
 };
-var $author$project$Main$GotCSV = function (a) {
+var $author$project$Messaging$GotCSV = function (a) {
 	return {$: 'GotCSV', a: a};
 };
 var $elm$http$Http$expectString = function (toMsg) {
@@ -6281,14 +6284,14 @@ var $elm$http$Http$expectString = function (toMsg) {
 var $author$project$Main$getCSVReq = function (filename) {
 	return $elm$http$Http$get(
 		{
-			expect: $elm$http$Http$expectString($author$project$Main$GotCSV),
+			expect: $elm$http$Http$expectString($author$project$Messaging$GotCSV),
 			url: filename
 		});
 };
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $BrianHicks$elm_csv$Csv$Decode$FieldNamesFromFirstRow = {$: 'FieldNamesFromFirstRow'};
-var $author$project$Main$ReadRow = F3(
+var $author$project$Messaging$ReadRow = F3(
 	function (book_title, reading_note, date) {
 		return {book_title: book_title, date: date, reading_note: reading_note};
 	});
@@ -7304,7 +7307,7 @@ var $BrianHicks$elm_csv$Csv$Decode$pipeline = $BrianHicks$elm_csv$Csv$Decode$map
 		function (value, fn) {
 			return fn(value);
 		}));
-var $author$project$Main$parseCsv = function (str) {
+var $author$project$Messaging$parseCsv = function (str) {
 	return A3(
 		$BrianHicks$elm_csv$Csv$Decode$decodeCsv,
 		$BrianHicks$elm_csv$Csv$Decode$FieldNamesFromFirstRow,
@@ -7325,7 +7328,7 @@ var $author$project$Main$parseCsv = function (str) {
 					A2(
 						$BrianHicks$elm_csv$Csv$Decode$pipeline,
 						A2($BrianHicks$elm_csv$Csv$Decode$field, 'BookTitle', $BrianHicks$elm_csv$Csv$Decode$string),
-						$BrianHicks$elm_csv$Csv$Decode$into($author$project$Main$ReadRow)))),
+						$BrianHicks$elm_csv$Csv$Decode$into($author$project$Messaging$ReadRow)))),
 			_List_fromArray(
 				[
 					A2(
@@ -7340,15 +7343,12 @@ var $author$project$Main$parseCsv = function (str) {
 						A2(
 							$BrianHicks$elm_csv$Csv$Decode$pipeline,
 							A2($BrianHicks$elm_csv$Csv$Decode$field, 'BookTitle', $BrianHicks$elm_csv$Csv$Decode$string),
-							$BrianHicks$elm_csv$Csv$Decode$into($author$project$Main$ReadRow))))
+							$BrianHicks$elm_csv$Csv$Decode$into($author$project$Messaging$ReadRow))))
 				])),
 		str);
 };
-var $author$project$Main$File = function (name) {
-	return {name: name};
-};
 var $author$project$Main$stringToFile = function (str) {
-	return $author$project$Main$File(str);
+	return $author$project$Messaging$File(str);
 };
 var $elm$core$Debug$toString = _Debug_toString;
 var $author$project$Main$update = F2(
@@ -7363,7 +7363,7 @@ var $author$project$Main$update = F2(
 							model,
 							{
 								fileList: A2($elm$core$List$map, $author$project$Main$stringToFile, fileList),
-								status: $author$project$Main$Index
+								status: $author$project$Messaging$Index
 							}),
 						$elm$core$Platform$Cmd$none);
 				} else {
@@ -7373,21 +7373,22 @@ var $author$project$Main$update = F2(
 							model,
 							{
 								fileList: _List_Nil,
-								status: $author$project$Main$Failure(
+								status: $author$project$Messaging$Failure(
 									$elm$core$Debug$toString(err))
 							}),
 						$elm$core$Platform$Cmd$none);
 				}
 			case 'GetCSV':
-				var file = msg.a;
+				var filename = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							file: $elm$core$Maybe$Just(file),
-							status: $author$project$Main$Loading
+							file: $elm$core$Maybe$Just(
+								$author$project$Messaging$File(filename)),
+							status: $author$project$Messaging$Loading
 						}),
-					$author$project$Main$getCSVReq(file.name));
+					$author$project$Main$getCSVReq(filename));
 			case 'GotCSV':
 				var result = msg.a;
 				if (result.$ === 'Ok') {
@@ -7397,13 +7398,13 @@ var $author$project$Main$update = F2(
 							model,
 							{
 								status: function () {
-									var _v3 = $author$project$Main$parseCsv(csv);
+									var _v3 = $author$project$Messaging$parseCsv(csv);
 									if (_v3.$ === 'Ok') {
 										var parsedCsv = _v3.a;
-										return $author$project$Main$Success(parsedCsv);
+										return $author$project$Messaging$Success(parsedCsv);
 									} else {
 										var err = _v3.a;
-										return $author$project$Main$Failure(
+										return $author$project$Messaging$Failure(
 											$elm$core$Debug$toString(err));
 									}
 								}()
@@ -7415,16 +7416,147 @@ var $author$project$Main$update = F2(
 						_Utils_update(
 							model,
 							{
-								status: $author$project$Main$Failure(
+								status: $author$project$Messaging$Failure(
 									$elm$core$Debug$toString(err))
 							}),
 						$elm$core$Platform$Cmd$none);
 				}
 			default:
 				return _Utils_Tuple2(
-					A3($author$project$Main$Model, $author$project$Main$Index, $elm$core$Maybe$Nothing, model.fileList),
+					A3($author$project$Messaging$Model, $author$project$Messaging$Index, $elm$core$Maybe$Nothing, model.fileList),
 					$elm$core$Platform$Cmd$none);
 		}
+	});
+var $elm$html$Html$div = _VirtualDom_node('div');
+var $author$project$Main$fileToString = function (file) {
+	return file.name;
+};
+var $elm$html$Html$h1 = _VirtualDom_node('h1');
+var $elm$svg$Svg$Attributes$class = _VirtualDom_attribute('class');
+var $elm$svg$Svg$Attributes$d = _VirtualDom_attribute('d');
+var $elm$svg$Svg$Attributes$mask = _VirtualDom_attribute('mask');
+var $elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
+var $elm$svg$Svg$path = $elm$svg$Svg$trustedNode('path');
+var $author$project$Homepage$x_interval = 25;
+var $author$project$Homepage$y_interval = 25;
+var $author$project$Homepage$leftTurn = 'H ' + ($elm$core$String$fromInt($author$project$Homepage$x_interval) + (' c -' + ($elm$core$String$fromInt($author$project$Homepage$x_interval) + (' 0, -' + ($elm$core$String$fromInt($author$project$Homepage$x_interval) + (' ' + ($elm$core$String$fromInt($author$project$Homepage$y_interval) + (', 0 ' + ($elm$core$String$fromInt($author$project$Homepage$y_interval) + ' ')))))))));
+var $elm$core$Basics$modBy = _Basics_modBy;
+var $author$project$Homepage$rightTurn = 'H ' + ($elm$core$String$fromInt($author$project$Homepage$x_interval * 3) + (' c ' + ($elm$core$String$fromInt($author$project$Homepage$x_interval) + (' 0, ' + ($elm$core$String$fromInt($author$project$Homepage$x_interval) + (' ' + ($elm$core$String$fromInt($author$project$Homepage$y_interval) + (', 0 ' + ($elm$core$String$fromInt($author$project$Homepage$y_interval) + ' ')))))))));
+var $author$project$Homepage$chooseTurn = function (n) {
+	var _v0 = A2($elm$core$Basics$modBy, 2, n);
+	switch (_v0) {
+		case 0:
+			return $author$project$Homepage$rightTurn;
+		case 1:
+			return $author$project$Homepage$leftTurn;
+		default:
+			return '';
+	}
+};
+var $elm$core$String$concat = function (strings) {
+	return A2($elm$core$String$join, '', strings);
+};
+var $author$project$Homepage$pathString = function (n) {
+	return 'M 10 ' + ($elm$core$String$fromInt($author$project$Homepage$y_interval) + (' ' + $elm$core$String$concat(
+		A2(
+			$elm$core$List$map,
+			$author$project$Homepage$chooseTurn,
+			A2($elm$core$List$range, 0, (((n - 1) / 3) | 0) + 1)))));
+};
+var $author$project$Homepage$createPath = function (n) {
+	return A2(
+		$elm$svg$Svg$path,
+		_List_fromArray(
+			[
+				$elm$svg$Svg$Attributes$d(
+				$author$project$Homepage$pathString(n)),
+				$elm$svg$Svg$Attributes$mask('url(#mask)'),
+				$elm$svg$Svg$Attributes$class('path')
+			]),
+		_List_Nil);
+};
+var $author$project$Messaging$GetCSV = function (a) {
+	return {$: 'GetCSV', a: a};
+};
+var $elm$svg$Svg$circle = $elm$svg$Svg$trustedNode('circle');
+var $elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
+var $elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
+var $elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
+var $elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 'Normal', a: a};
+};
+var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var $elm$html$Html$Events$on = F2(
+	function (event, decoder) {
+		return A2(
+			$elm$virtual_dom$VirtualDom$on,
+			event,
+			$elm$virtual_dom$VirtualDom$Normal(decoder));
+	});
+var $elm$svg$Svg$Events$onClick = function (msg) {
+	return A2(
+		$elm$html$Html$Events$on,
+		'click',
+		$elm$json$Json$Decode$succeed(msg));
+};
+var $elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
+var $elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
+var $author$project$Homepage$circle_N = F5(
+	function (n, filename, s_col, fill_col, c_names) {
+		return A2(
+			$elm$svg$Svg$circle,
+			_List_fromArray(
+				[
+					$elm$svg$Svg$Attributes$cx(
+					$elm$core$String$fromInt(
+						$author$project$Homepage$x_interval * (A2($elm$core$Basics$modBy, 3, n) + 1))),
+					$elm$svg$Svg$Attributes$cy(
+					$elm$core$String$fromInt((((n / 3) | 0) + 2) * $author$project$Homepage$y_interval)),
+					$elm$svg$Svg$Attributes$r('6'),
+					$elm$svg$Svg$Attributes$stroke(s_col),
+					$elm$svg$Svg$Attributes$fill(fill_col),
+					$elm$svg$Svg$Attributes$class(c_names),
+					$elm$svg$Svg$Events$onClick(
+					$author$project$Messaging$GetCSV(filename))
+				]),
+			_List_Nil);
+	});
+var $author$project$Homepage$circleTextN = F2(
+	function (n, filename) {
+		return A5($author$project$Homepage$circle_N, n, filename, 'black', 'transparent', 'circle');
+	});
+var $elm$svg$Svg$Attributes$dy = _VirtualDom_attribute('dy');
+var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
+var $elm$svg$Svg$text = $elm$virtual_dom$VirtualDom$text;
+var $elm$svg$Svg$text_ = $elm$svg$Svg$trustedNode('text');
+var $elm$svg$Svg$Attributes$x = _VirtualDom_attribute('x');
+var $elm$svg$Svg$Attributes$y = _VirtualDom_attribute('y');
+var $author$project$Homepage$text_N = F2(
+	function (n, filename) {
+		return A2(
+			$elm$svg$Svg$text_,
+			_List_fromArray(
+				[
+					$elm$svg$Svg$Attributes$x(
+					$elm$core$String$fromInt(
+						$author$project$Homepage$x_interval * (A2($elm$core$Basics$modBy, 3, n) + 1))),
+					$elm$svg$Svg$Attributes$y(
+					$elm$core$String$fromInt((((n / 3) | 0) + 2) * $author$project$Homepage$y_interval)),
+					$elm$svg$Svg$Attributes$dy('.3em'),
+					$elm$svg$Svg$Attributes$class('small circle-text')
+				]),
+			_List_fromArray(
+				[
+					$elm$svg$Svg$text(filename)
+				]));
+	});
+var $author$project$Homepage$circle_group = F2(
+	function (n, filename) {
+		return _List_fromArray(
+			[
+				A2($author$project$Homepage$circleTextN, n, filename),
+				A2($author$project$Homepage$text_N, n, filename)
+			]);
 	});
 var $elm$core$List$append = F2(
 	function (xs, ys) {
@@ -7434,11 +7566,84 @@ var $elm$core$List$append = F2(
 			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
 		}
 	});
-var $elm$html$Html$div = _VirtualDom_node('div');
-var $elm$html$Html$h1 = _VirtualDom_node('h1');
-var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
+var $elm$core$List$concat = function (lists) {
+	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
+};
+var $author$project$Homepage$create_groups = function (filenames) {
+	return $elm$core$List$concat(
+		A2($elm$core$List$indexedMap, $author$project$Homepage$circle_group, filenames));
+};
+var $author$project$Homepage$circleMaskN = function (n) {
+	return A5($author$project$Homepage$circle_N, n, '', 'white', 'black', '');
+};
+var $author$project$Homepage$create_circles = function (n) {
+	return A2(
+		$elm$core$List$map,
+		$author$project$Homepage$circleMaskN,
+		A2($elm$core$List$range, 0, n - 1));
+};
+var $elm$svg$Svg$defs = $elm$svg$Svg$trustedNode('defs');
+var $elm$svg$Svg$Attributes$id = _VirtualDom_attribute('id');
+var $elm$svg$Svg$mask = $elm$svg$Svg$trustedNode('mask');
+var $elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
+var $elm$svg$Svg$rect = $elm$svg$Svg$trustedNode('rect');
+var $author$project$Homepage$viewBoxHeight = 120;
+var $author$project$Homepage$viewBoxWidth = 100;
+var $elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
+var $author$project$Homepage$mask_rect = A2(
+	$elm$svg$Svg$rect,
+	_List_fromArray(
+		[
+			$elm$svg$Svg$Attributes$x('0'),
+			$elm$svg$Svg$Attributes$y('0'),
+			$elm$svg$Svg$Attributes$width(
+			$elm$core$String$fromInt($author$project$Homepage$viewBoxWidth)),
+			$elm$svg$Svg$Attributes$height(
+			$elm$core$String$fromInt($author$project$Homepage$viewBoxHeight)),
+			$elm$svg$Svg$Attributes$fill('white')
+		]),
+	_List_Nil);
+var $author$project$Homepage$mask_def = function (n_circles) {
+	return A2(
+		$elm$svg$Svg$defs,
+		_List_Nil,
+		_List_fromArray(
+			[
+				A2(
+				$elm$svg$Svg$mask,
+				_List_fromArray(
+					[
+						$elm$svg$Svg$Attributes$id('mask')
+					]),
+				A2(
+					$elm$core$List$cons,
+					$author$project$Homepage$mask_rect,
+					$author$project$Homepage$create_circles(n_circles)))
+			]));
+};
+var $elm$svg$Svg$svg = $elm$svg$Svg$trustedNode('svg');
+var $elm$svg$Svg$Attributes$viewBox = _VirtualDom_attribute('viewBox');
+var $author$project$Homepage$svg_main = function (filenames) {
+	return A2(
+		$elm$svg$Svg$svg,
+		_List_fromArray(
+			[
+				$elm$svg$Svg$Attributes$width('40vw'),
+				$elm$svg$Svg$Attributes$viewBox(
+				'0 10 ' + ($elm$core$String$fromInt($author$project$Homepage$viewBoxWidth) + (' ' + $elm$core$String$fromInt($author$project$Homepage$viewBoxHeight))))
+			]),
+		A2(
+			$elm$core$List$cons,
+			$author$project$Homepage$mask_def(
+				$elm$core$List$length(filenames)),
+			A2(
+				$elm$core$List$cons,
+				$author$project$Homepage$createPath(
+					$elm$core$List$length(filenames)),
+				$author$project$Homepage$create_groups(filenames))));
+};
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
-var $author$project$Main$Return = {$: 'Return'};
+var $author$project$Messaging$Return = {$: 'Return'};
 var $elm$html$Html$button = _VirtualDom_node('button');
 var $elm$json$Json$Encode$string = _Json_wrap;
 var $elm$html$Html$Attributes$stringProperty = F2(
@@ -7506,7 +7711,6 @@ var $author$project$Main$formatFileName = function (file) {
 		return fp.name;
 	}
 };
-var $elm$core$Basics$modBy = _Basics_modBy;
 var $author$project$Main$mapToDiv = F3(
 	function (idx, spefDiv, item) {
 		return (A2($elm$core$Basics$modBy, 2, idx) === 1) ? A2(spefDiv, 'oddrow', item) : A2(spefDiv, 'evenrow', item);
@@ -8147,17 +8351,6 @@ var $author$project$Main$mapToRowDiv = F2(
 	function (idx, csv) {
 		return A3($author$project$Main$mapToDiv, idx, $author$project$Main$rowDiv, csv);
 	});
-var $elm$virtual_dom$VirtualDom$Normal = function (a) {
-	return {$: 'Normal', a: a};
-};
-var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
-var $elm$html$Html$Events$on = F2(
-	function (event, decoder) {
-		return A2(
-			$elm$virtual_dom$VirtualDom$on,
-			event,
-			$elm$virtual_dom$VirtualDom$Normal(decoder));
-	});
 var $elm$html$Html$Events$onClick = function (msg) {
 	return A2(
 		$elm$html$Html$Events$on,
@@ -8210,7 +8403,7 @@ var $author$project$Main$displayRList = F2(
 							$elm$html$Html$button,
 							_List_fromArray(
 								[
-									$elm$html$Html$Events$onClick($author$project$Main$Return)
+									$elm$html$Html$Events$onClick($author$project$Messaging$Return)
 								]),
 							_List_fromArray(
 								[
@@ -8252,47 +8445,24 @@ var $author$project$Main$viewCsv = function (model) {
 			return A2($elm$html$Html$div, _List_Nil, _List_Nil);
 	}
 };
-var $author$project$Main$GetCSV = function (a) {
-	return {$: 'GetCSV', a: a};
-};
-var $author$project$Main$viewFile = function (file) {
-	return A2(
-		$elm$html$Html$div,
-		_List_Nil,
-		_List_fromArray(
-			[
-				A2(
-				$elm$html$Html$button,
-				_List_fromArray(
-					[
-						$elm$html$Html$Events$onClick(
-						$author$project$Main$GetCSV(file))
-					]),
-				_List_fromArray(
-					[
-						$elm$html$Html$text(file.name)
-					]))
-			]));
-};
 var $author$project$Main$view = function (model) {
 	var _v0 = model.status;
 	if (_v0.$ === 'Index') {
 		return A2(
 			$elm$html$Html$div,
 			_List_Nil,
-			A2(
-				$elm$core$List$append,
-				_List_fromArray(
-					[
-						A2(
-						$elm$html$Html$h1,
-						_List_Nil,
-						_List_fromArray(
-							[
-								$elm$html$Html$text('Get CSV File')
-							]))
-					]),
-				A2($elm$core$List$map, $author$project$Main$viewFile, model.fileList)));
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$h1,
+					_List_Nil,
+					_List_fromArray(
+						[
+							$elm$html$Html$text('Books I\'ve Read')
+						])),
+					$author$project$Homepage$svg_main(
+					A2($elm$core$List$map, $author$project$Main$fileToString, model.fileList))
+				]));
 	} else {
 		return A2(
 			$elm$html$Html$div,
