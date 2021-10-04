@@ -1,0 +1,9 @@
+.*
+notes.md
+CHANGELOG.md
+relative_svg.html
+reading-list.cabal
+elm-stuff/
+dist-newstyle/
+BuildDocker/
+book_lists/
