@@ -7744,7 +7744,7 @@ var $elm$core$Basics$negate = function (n) {
 	return -n;
 };
 var $elm$core$Basics$neq = _Utils_notEqual;
-var $author$project$Main$stripLeft = function (str) {
+var $author$project$NoteParser$stripLeft = function (str) {
 	stripLeft:
 	while (true) {
 		var _v0 = $elm$core$String$uncons(str);
@@ -7767,11 +7767,11 @@ var $author$project$Main$stripLeft = function (str) {
 	}
 };
 var $elm$core$String$reverse = _String_reverse;
-var $author$project$Main$stripRight = A2(
+var $author$project$NoteParser$stripRight = A2(
 	$elm$core$Basics$composeL,
-	A2($elm$core$Basics$composeL, $elm$core$String$reverse, $author$project$Main$stripLeft),
+	A2($elm$core$Basics$composeL, $elm$core$String$reverse, $author$project$NoteParser$stripLeft),
 	$elm$core$String$reverse);
-var $author$project$Main$stripString = A2($elm$core$Basics$composeL, $author$project$Main$stripRight, $author$project$Main$stripLeft);
+var $author$project$NoteParser$stripString = A2($elm$core$Basics$composeL, $author$project$NoteParser$stripRight, $author$project$NoteParser$stripLeft);
 var $author$project$Main$formatDate = function (str) {
 	if (str.$ === 'Just') {
 		var date = str.a;
@@ -7779,12 +7779,12 @@ var $author$project$Main$formatDate = function (str) {
 			$elm$core$String$slice,
 			1,
 			-1,
-			$author$project$Main$stripString(date));
+			$author$project$NoteParser$stripString(date));
 	} else {
 		return '';
 	}
 };
-var $author$project$Main$getName = function (name) {
+var $author$project$NoteParser$getName = function (name) {
 	var _v0 = $elm$core$String$length(name);
 	if (_v0 === 1) {
 		switch (name) {
@@ -7807,7 +7807,7 @@ var $author$project$Main$getName = function (name) {
 		return name;
 	}
 };
-var $author$project$Main$formatReadingNote = function (maybeNote) {
+var $author$project$NoteParser$formatReadingNote = function (maybeNote) {
 	var note = maybeNote;
 	switch (note.$) {
 		case 'Reread':
@@ -7826,13 +7826,13 @@ var $author$project$Main$formatReadingNote = function (maybeNote) {
 			return 'poetry';
 		case 'Borrowed':
 			var c = note.a;
-			return 'given to me by ' + $author$project$Main$getName(c);
+			return 'given to me by ' + $author$project$NoteParser$getName(c);
 		default:
 			var str = note.a;
 			return 'Parse error:' + str;
 	}
 };
-var $author$project$Main$NoteError = function (a) {
+var $author$project$NoteParser$NoteError = function (a) {
 	return {$: 'NoteError', a: a};
 };
 var $elm$parser$Parser$Advanced$Bad = F2(
@@ -7877,7 +7877,7 @@ var $elm$parser$Parser$Advanced$andThen = F2(
 			});
 	});
 var $elm$parser$Parser$andThen = $elm$parser$Parser$Advanced$andThen;
-var $author$project$Main$cons = F2(
+var $author$project$NoteParser$cons = F2(
 	function (x, xs) {
 		return A2($elm$core$List$cons, x, xs);
 	});
@@ -7976,7 +7976,7 @@ var $elm$parser$Parser$Advanced$oneOf = function (parsers) {
 		});
 };
 var $elm$parser$Parser$oneOf = $elm$parser$Parser$Advanced$oneOf;
-var $author$project$Main$many = function (p) {
+var $author$project$NoteParser$many = function (p) {
 	return $elm$parser$Parser$oneOf(
 		_List_fromArray(
 			[
@@ -7991,13 +7991,13 @@ var $author$project$Main$many = function (p) {
 				function (a) {
 					return A2(
 						$elm$parser$Parser$map,
-						$author$project$Main$cons(a),
-						$author$project$Main$many(p));
+						$author$project$NoteParser$cons(a),
+						$author$project$NoteParser$many(p));
 				},
 				p)
 			]));
 };
-var $author$project$Main$Borrowed = function (a) {
+var $author$project$NoteParser$Borrowed = function (a) {
 	return {$: 'Borrowed', a: a};
 };
 var $elm$core$Set$Set_elm_builtin = function (a) {
@@ -8178,11 +8178,11 @@ var $elm$parser$Parser$variable = function (i) {
 	return $elm$parser$Parser$Advanced$variable(
 		{expecting: $elm$parser$Parser$ExpectingVariable, inner: i.inner, reserved: i.reserved, start: i.start});
 };
-var $author$project$Main$borrowed = A2(
+var $author$project$NoteParser$borrowed = A2(
 	$elm$parser$Parser$keeper,
 	A2(
 		$elm$parser$Parser$ignorer,
-		$elm$parser$Parser$succeed($author$project$Main$Borrowed),
+		$elm$parser$Parser$succeed($author$project$NoteParser$Borrowed),
 		$elm$parser$Parser$oneOf(
 			_List_fromArray(
 				[
@@ -8199,7 +8199,7 @@ var $author$project$Main$borrowed = A2(
 					$elm$parser$Parser$symbol(')'),
 					$elm$parser$Parser$symbol(']')
 				]))));
-var $author$project$Main$GraphicNovel = {$: 'GraphicNovel'};
+var $author$project$NoteParser$GraphicNovel = {$: 'GraphicNovel'};
 var $elm$parser$Parser$Expecting = function (a) {
 	return {$: 'Expecting', a: a};
 };
@@ -8213,43 +8213,43 @@ var $elm$parser$Parser$token = function (str) {
 	return $elm$parser$Parser$Advanced$token(
 		$elm$parser$Parser$toToken(str));
 };
-var $author$project$Main$graphicnovel = A2(
+var $author$project$NoteParser$graphicnovel = A2(
 	$elm$parser$Parser$ignorer,
-	$elm$parser$Parser$succeed($author$project$Main$GraphicNovel),
+	$elm$parser$Parser$succeed($author$project$NoteParser$GraphicNovel),
 	$elm$parser$Parser$token('l'));
-var $author$project$Main$NonFiction = {$: 'NonFiction'};
-var $author$project$Main$nonfiction = A2(
+var $author$project$NoteParser$NonFiction = {$: 'NonFiction'};
+var $author$project$NoteParser$nonfiction = A2(
 	$elm$parser$Parser$ignorer,
-	$elm$parser$Parser$succeed($author$project$Main$NonFiction),
+	$elm$parser$Parser$succeed($author$project$NoteParser$NonFiction),
 	$elm$parser$Parser$token('o'));
-var $author$project$Main$Play = {$: 'Play'};
-var $author$project$Main$play = A2(
+var $author$project$NoteParser$Play = {$: 'Play'};
+var $author$project$NoteParser$play = A2(
 	$elm$parser$Parser$ignorer,
-	$elm$parser$Parser$succeed($author$project$Main$Play),
+	$elm$parser$Parser$succeed($author$project$NoteParser$Play),
 	$elm$parser$Parser$token('$'));
-var $author$project$Main$Poetry = {$: 'Poetry'};
-var $author$project$Main$poetry = A2(
+var $author$project$NoteParser$Poetry = {$: 'Poetry'};
+var $author$project$NoteParser$poetry = A2(
 	$elm$parser$Parser$ignorer,
-	$elm$parser$Parser$succeed($author$project$Main$Poetry),
+	$elm$parser$Parser$succeed($author$project$NoteParser$Poetry),
 	$elm$parser$Parser$token('&'));
-var $author$project$Main$Reread = {$: 'Reread'};
-var $author$project$Main$reread = A2(
+var $author$project$NoteParser$Reread = {$: 'Reread'};
+var $author$project$NoteParser$reread = A2(
 	$elm$parser$Parser$ignorer,
-	$elm$parser$Parser$succeed($author$project$Main$Reread),
+	$elm$parser$Parser$succeed($author$project$NoteParser$Reread),
 	$elm$parser$Parser$token('*'));
-var $author$project$Main$ShortStoryCollection = {$: 'ShortStoryCollection'};
-var $author$project$Main$shortstories = A2(
+var $author$project$NoteParser$ShortStoryCollection = {$: 'ShortStoryCollection'};
+var $author$project$NoteParser$shortstories = A2(
 	$elm$parser$Parser$ignorer,
-	$elm$parser$Parser$succeed($author$project$Main$ShortStoryCollection),
+	$elm$parser$Parser$succeed($author$project$NoteParser$ShortStoryCollection),
 	$elm$parser$Parser$token('^^'));
-var $author$project$Main$ShortStory = {$: 'ShortStory'};
-var $author$project$Main$shortstory = A2(
+var $author$project$NoteParser$ShortStory = {$: 'ShortStory'};
+var $author$project$NoteParser$shortstory = A2(
 	$elm$parser$Parser$ignorer,
-	$elm$parser$Parser$succeed($author$project$Main$ShortStory),
+	$elm$parser$Parser$succeed($author$project$NoteParser$ShortStory),
 	$elm$parser$Parser$token('^'));
-var $author$project$Main$parseReadingNote = $elm$parser$Parser$oneOf(
+var $author$project$NoteParser$parseReadingNote = $elm$parser$Parser$oneOf(
 	_List_fromArray(
-		[$author$project$Main$reread, $author$project$Main$shortstories, $author$project$Main$shortstory, $author$project$Main$nonfiction, $author$project$Main$graphicnovel, $author$project$Main$play, $author$project$Main$poetry, $author$project$Main$borrowed]));
+		[$author$project$NoteParser$reread, $author$project$NoteParser$shortstories, $author$project$NoteParser$shortstory, $author$project$NoteParser$nonfiction, $author$project$NoteParser$graphicnovel, $author$project$NoteParser$play, $author$project$NoteParser$poetry, $author$project$NoteParser$borrowed]));
 var $elm$parser$Parser$DeadEnd = F3(
 	function (row, col, problem) {
 		return {col: col, problem: problem, row: row};
@@ -8309,13 +8309,13 @@ var $elm$parser$Parser$run = F2(
 				A2($elm$core$List$map, $elm$parser$Parser$problemToDeadEnd, problems));
 		}
 	});
-var $author$project$Main$parse = function (str) {
+var $author$project$NoteParser$parse = function (str) {
 	if (str.$ === 'Just') {
 		var note = str.a;
 		var _v1 = A2(
 			$elm$parser$Parser$run,
-			$author$project$Main$many($author$project$Main$parseReadingNote),
-			$author$project$Main$stripString(note));
+			$author$project$NoteParser$many($author$project$NoteParser$parseReadingNote),
+			$author$project$NoteParser$stripString(note));
 		if (_v1.$ === 'Ok') {
 			var notes = _v1.a;
 			return notes;
@@ -8323,9 +8323,9 @@ var $author$project$Main$parse = function (str) {
 			var a = _v1.a;
 			return _List_fromArray(
 				[
-					$author$project$Main$NoteError(
+					$author$project$NoteParser$NoteError(
 					$elm$core$Debug$toString(a)),
-					$author$project$Main$NoteError(note)
+					$author$project$NoteParser$NoteError(note)
 				]);
 		}
 	} else {
@@ -8368,8 +8368,8 @@ var $author$project$Main$rowDiv = F2(
 				', ',
 				A2(
 					$elm$core$List$map,
-					$author$project$Main$formatReadingNote,
-					$author$project$Main$parse(csv.reading_note))),
+					$author$project$NoteParser$formatReadingNote,
+					$author$project$NoteParser$parse(csv.reading_note))),
 			$author$project$Main$formatDate(csv.date));
 	});
 var $author$project$Main$mapToRowDiv = F2(
