@@ -118,9 +118,6 @@ viewCsv model =
         Failure err ->
             div [] [ text ("Couldn't Load" ++ err) ]
 
-        Loading ->
-            div [] [ text "Loading..." ]
-
         Success csv ->
             div [] [ displayRList csv model.file ]
 

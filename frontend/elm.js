@@ -8449,14 +8449,6 @@ var $author$project$Main$viewCsv = function (model) {
 					[
 						$elm$html$Html$text('Couldn\'t Load' + err)
 					]));
-		case 'Loading':
-			return A2(
-				$elm$html$Html$div,
-				_List_Nil,
-				_List_fromArray(
-					[
-						$elm$html$Html$text('Loading...')
-					]));
 		case 'Success':
 			var csv = _v0.a;
 			return A2(
