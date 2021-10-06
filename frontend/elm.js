@@ -7482,6 +7482,17 @@ var $elm$svg$Svg$circle = $elm$svg$Svg$trustedNode('circle');
 var $elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
 var $elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
 var $elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
+var $author$project$Homepage$getXPos = function (n) {
+	var _v0 = A2($elm$core$Basics$modBy, 2, (n / 3) | 0);
+	switch (_v0) {
+		case 1:
+			return $author$project$Homepage$x_interval * (A2($elm$core$Basics$modBy, 3, n) + 1);
+		case 0:
+			return 100 - ($author$project$Homepage$x_interval * (A2($elm$core$Basics$modBy, 3, n) + 1));
+		default:
+			return $author$project$Homepage$x_interval * (A2($elm$core$Basics$modBy, 3, n) + 1);
+	}
+};
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
 };
@@ -7509,7 +7520,7 @@ var $author$project$Homepage$circle_N = F5(
 				[
 					$elm$svg$Svg$Attributes$cx(
 					$elm$core$String$fromInt(
-						$author$project$Homepage$x_interval * (A2($elm$core$Basics$modBy, 3, n) + 1))),
+						$author$project$Homepage$getXPos(n))),
 					$elm$svg$Svg$Attributes$cy(
 					$elm$core$String$fromInt((((n / 3) | 0) + 2) * $author$project$Homepage$y_interval)),
 					$elm$svg$Svg$Attributes$r('6'),
@@ -7539,7 +7550,7 @@ var $author$project$Homepage$text_N = F2(
 				[
 					$elm$svg$Svg$Attributes$x(
 					$elm$core$String$fromInt(
-						$author$project$Homepage$x_interval * (A2($elm$core$Basics$modBy, 3, n) + 1))),
+						$author$project$Homepage$getXPos(n))),
 					$elm$svg$Svg$Attributes$y(
 					$elm$core$String$fromInt((((n / 3) | 0) + 2) * $author$project$Homepage$y_interval)),
 					$elm$svg$Svg$Attributes$dy('.3em'),

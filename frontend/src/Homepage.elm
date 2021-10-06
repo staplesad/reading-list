@@ -44,19 +44,25 @@ mask_def n_circles =
     defs [] [ Svg.mask [ id "mask" ] (mask_rect :: create_circles n_circles) ]
 
 
+getXPos : Int -> Int
+getXPos n = case modBy 2 (n//3) of
+  1 -> x_interval * (modBy 3 n+1)
+  0 -> 100 - (x_interval * (modBy 3 n+1))
+  _ -> x_interval * (modBy 3 n+1)
+
+
 circle_N : Int -> String -> String -> String -> String -> Svg Msg
 circle_N n filename s_col fill_col c_names =
-    circle
-        [ cx <| fromInt (x_interval * (modBy 3 n + 1))
-        , cy <| fromInt (((n // 3) + 2) * y_interval)
-        , r "6"
-        , stroke s_col
-        , fill fill_col
-        , class c_names
-        , onClick (GetCSV filename)
-        ]
-        []
-
+        circle
+            [ cx <| fromInt (getXPos n)
+            , cy <| fromInt (((n // 3) + 2) * y_interval)
+            , r "6"
+            , stroke s_col
+            , fill fill_col
+            , class c_names
+            , onClick (GetCSV filename)
+            ]
+            []
 
 circleMaskN n =
     circle_N n "" "white" "black" ""
@@ -69,7 +75,7 @@ circleTextN n filename =
 text_N : Int -> String -> Svg Msg
 text_N n filename =
     text_
-        [ x <| fromInt (x_interval * (modBy 3 n + 1))
+        [ x <| fromInt (getXPos n)
         , y <| fromInt (((n // 3) + 2) * y_interval)
         , dy ".3em"
         , class "small circle-text"
