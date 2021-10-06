@@ -44,19 +44,25 @@ mask_def n_circles =
     defs [] [ Svg.mask [ id "mask" ] (mask_rect :: create_circles n_circles) ]
 
 
+getXPos : Int -> Int
+getXPos n = case modBy 2 (n//3) of
+  1 -> x_interval * (modBy 3 n+1)
+  0 -> 100 - (x_interval * (modBy 3 n+1))
+  _ -> x_interval * (modBy 3 n+1)
+
+
 circle_N : Int -> String -> String -> String -> String -> Svg Msg
 circle_N n filename s_col fill_col c_names =
-    circle
-        [ cx <| fromInt (x_interval * (modBy 3 n + 1))
-        , cy <| fromInt (((n // 3) + 2) * y_interval)
-        , r "6"
-        , stroke s_col
-        , fill fill_col
-        , class c_names
-        , onClick (GetCSV filename)
-        ]
-        []
-
+        circle
+            [ cx <| fromInt (getXPos n)
+            , cy <| fromInt (((n // 3) + 2) * y_interval)
+            , r "6"
+            , stroke s_col
+            , fill fill_col
+            , class c_names
+            , onClick (GetCSV filename)
+            ]
+            []
 
 circleMaskN n =
     circle_N n "" "white" "black" ""
@@ -69,7 +75,7 @@ circleTextN n filename =
 text_N : Int -> String -> Svg Msg
 text_N n filename =
     text_
-        [ x <| fromInt (x_interval * (modBy 3 n + 1))
+        [ x <| fromInt (getXPos n)
         , y <| fromInt (((n // 3) + 2) * y_interval)
         , dy ".3em"
         , class "small circle-text"
@@ -143,19 +149,24 @@ pathString n =
         ++ String.concat (List.map chooseTurn (List.range 0 ((n - 1) // 3 + 1)))
 
 
-createPath : Int -> Svg Msg
-createPath n =
+createPath : Int -> Bool -> Svg Msg
+createPath n shouldAnimate =
     Svg.path
         [ d (pathString n)
         , Svg.Attributes.mask "url(#mask)"
         , class "path"
+        , Svg.Attributes.style (setAnimation shouldAnimate)
         ]
         []
 
+setAnimation : Bool -> String
+setAnimation shouldAnimate = case shouldAnimate of
+  True -> "animation-play-state:running;stroke-dasharray:400;"
+  False -> "animation-play-state:paused;stroke-dasharray:0;"
 
-svg_main : List String -> Svg Msg
-svg_main filenames =
-    svg [ width "40vw", viewBox <| "0 10 " ++ fromInt viewBoxWidth ++ " " ++ fromInt viewBoxHeight ]
+svg_main : List String -> Bool -> Svg Msg
+svg_main filenames shouldAnimate =
+    svg [ width "40vw", viewBox <| "0 10 " ++ fromInt viewBoxWidth ++ " " ++ fromInt viewBoxHeight]
         (mask_def (List.length filenames)
-            :: (createPath (List.length filenames) :: create_groups filenames)
+            :: (createPath (List.length filenames) shouldAnimate :: create_groups filenames)
         )

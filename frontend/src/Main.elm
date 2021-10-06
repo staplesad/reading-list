@@ -33,7 +33,7 @@ main =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Model Loading Nothing [], getFileList )
+    ( Model Loading True Nothing [], getFileList )
 
 
 
@@ -78,7 +78,7 @@ update msg model =
                     ( { model | status = Failure <| toString err }, Cmd.none )
 
         Return ->
-            ( Model Index Nothing model.fileList, Cmd.none )
+            ( Model Index False Nothing model.fileList, Cmd.none )
 
 
 
@@ -105,7 +105,7 @@ view model =
         Index ->
             div []
                 [ h1 [] [ text "Books I've Read" ]
-                , svg_main (List.map fileToString model.fileList)
+                , svg_main (List.map fileToString model.fileList) model.shouldAnimate
                 ]
 
         _ ->
@@ -117,9 +117,6 @@ viewCsv model =
     case model.status of
         Failure err ->
             div [] [ text ("Couldn't Load" ++ err) ]
-
-        Loading ->
-            div [] [ text "Loading..." ]
 
         Success csv ->
             div [] [ displayRList csv model.file ]
