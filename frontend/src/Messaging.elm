@@ -32,6 +32,7 @@ type Status
 
 type alias Model =
     { status : Status
+    , shouldAnimate: Bool
     , file : Maybe File
     , fileList : List File
     }

@@ -149,19 +149,24 @@ pathString n =
         ++ String.concat (List.map chooseTurn (List.range 0 ((n - 1) // 3 + 1)))
 
 
-createPath : Int -> Svg Msg
-createPath n =
+createPath : Int -> Bool -> Svg Msg
+createPath n shouldAnimate =
     Svg.path
         [ d (pathString n)
         , Svg.Attributes.mask "url(#mask)"
         , class "path"
+        , Svg.Attributes.style (setAnimation shouldAnimate)
         ]
         []
 
+setAnimation : Bool -> String
+setAnimation shouldAnimate = case shouldAnimate of
+  True -> "animation-play-state:running;stroke-dasharray:400;"
+  False -> "animation-play-state:paused;stroke-dasharray:0;"
 
-svg_main : List String -> Svg Msg
-svg_main filenames =
-    svg [ width "40vw", viewBox <| "0 10 " ++ fromInt viewBoxWidth ++ " " ++ fromInt viewBoxHeight ]
+svg_main : List String -> Bool -> Svg Msg
+svg_main filenames shouldAnimate =
+    svg [ width "40vw", viewBox <| "0 10 " ++ fromInt viewBoxWidth ++ " " ++ fromInt viewBoxHeight]
         (mask_def (List.length filenames)
-            :: (createPath (List.length filenames) :: create_groups filenames)
+            :: (createPath (List.length filenames) shouldAnimate :: create_groups filenames)
         )
