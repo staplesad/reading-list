@@ -7844,7 +7844,7 @@ var $author$project$Homepage$pathString = function (n) {
 };
 var $author$project$Homepage$setAnimation = function (shouldAnimate) {
 	if (shouldAnimate) {
-		return 'animation-play-state:running;stroke-dasharray:400;';
+		return 'animation-play-state:running;stroke-dasharray:600;';
 	} else {
 		return 'animation-play-state:paused;stroke-dasharray:0;';
 	}
@@ -7977,7 +7977,7 @@ var $elm$svg$Svg$Attributes$id = _VirtualDom_attribute('id');
 var $elm$svg$Svg$mask = $elm$svg$Svg$trustedNode('mask');
 var $elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
 var $elm$svg$Svg$rect = $elm$svg$Svg$trustedNode('rect');
-var $author$project$Homepage$viewBoxHeight = 120;
+var $author$project$Homepage$viewBoxHeight = 160;
 var $author$project$Homepage$viewBoxWidth = 100;
 var $elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
 var $author$project$Homepage$mask_rect = A2(

@@ -14,7 +14,7 @@ viewBoxWidth =
 
 viewBoxHeight : Int
 viewBoxHeight =
-    120
+    160
 
 
 x_interval : Int
@@ -161,7 +161,7 @@ createPath n shouldAnimate =
 
 setAnimation : Bool -> String
 setAnimation shouldAnimate = case shouldAnimate of
-  True -> "animation-play-state:running;stroke-dasharray:400;"
+  True -> "animation-play-state:running;stroke-dasharray:600;"
   False -> "animation-play-state:paused;stroke-dasharray:0;"
 
 svg_main : List String -> Bool -> Svg Msg
