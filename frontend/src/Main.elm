@@ -1,27 +1,34 @@
 module Main exposing (..)
 
 import Browser
-import Debug exposing (toString)
+import Debug exposing (toString, log)
+import Dict as Dct exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
 import Json.Decode as D
-import String as S exposing (cons, reverse, uncons)
+import String as S
+import Browser.Navigation as Nav
+import Url
+import Url.Builder
+import Url.Parser as P exposing((</>))
 
 import Homepage exposing (svg_main)
 import Messaging exposing (File, Model, Msg(..), ReadRow, Status(..), parseCsv)
 import NoteParser exposing (..)
-
+import StatsViz exposing (parseCSV, yearView)
 -- Main
 
 
 main =
-    Browser.element
+    Browser.application
         { init = init
         , update = update
         , subscriptions = subscriptions
         , view = view
+        , onUrlChange = UrlChanged
+        , onUrlRequest = LinkClicked
         }
 
 
@@ -29,9 +36,9 @@ main =
 -- Model
 
 
-init : () -> ( Model, Cmd Msg )
-init _ =
-    ( Model Loading True Nothing [], getFileList )
+init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
+init flags url key =
+    ( Model Loading True Nothing [] url key Dct.empty, getFileList )
 
 
 
@@ -55,30 +62,80 @@ update msg model =
                     ( { model | status = Failure <| toString err, fileList = [] }, Cmd.none )
 
         GetCSV filename ->
-            ( { model | status = Loading, file = Just (File filename) }, getCSVReq filename )
+          let
+              csv = Dct.get filename model.csvs
+          in
+              case csv of
+                Just cached -> ({ model | file = Just(File filename)
+                                        , status = Success cached}
+                               , Nav.pushUrl model.key (buildUrl filename)
+                               )
+                Nothing -> ( { model | status = Loading
+                                     , file = Just (File filename) }
+                           , getCSVReq filename
+                           )
 
         GotCSV result ->
             case result of
                 Ok csv ->
-                    ( { model
-                        | status =
-                            case parseCsv csv of
-                                Ok parsedCsv ->
-                                    Success parsedCsv
+                  let
+                      filename = case model.file of
+                        Just f -> f.name
+                        Nothing -> "..."
+                      res = case parseCsv csv of
+                          Ok parsedCsv ->
+                              Success parsedCsv
 
-                                Err err ->
-                                    Failure <| toString err
-                      }
-                    , Cmd.none
-                    )
+                          Err err ->
+                              Failure <| toString err
+                  in
+                    case res of
+                      Success pres -> ( { model
+                                    | csvs = Dct.update filename (\_ -> Just pres) model.csvs
+                                    , status = res
+                                    }
+                                  , Nav.pushUrl model.key (buildUrl filename)
+                                  )
+                      Failure _ -> ( { model | status = res}
+                                , Nav.pushUrl model.key (buildUrl filename)
+                                )
+                      _ -> ( {model | status = res}, Cmd.none)
 
                 Err err ->
                     ( { model | status = Failure <| toString err }, Cmd.none )
 
         Return ->
-            ( Model Index False Nothing model.fileList, Cmd.none )
+            ( { model | status = Index, shouldAnimate = False, file = Nothing }
+            , (Nav.pushUrl model.key (Url.Builder.absolute [] []))
+            )
 
+        LinkClicked urlRequest ->
+          (model, Cmd.none)
 
+        UrlChanged url ->
+          let
+              (mod, cmd)  = case parseUrl url of
+                        Just year -> ( { model | file = Just (File (toString year))
+                                               , status =
+                                                 case Dct.get (toString year) model.csvs of
+                                                    Nothing -> Failure "not cached"
+                                                    Just csv -> Success csv}
+                                     , Cmd.none)
+                        Nothing -> ( { model | status = Index
+                                             , shouldAnimate = False
+                                             , file = Nothing }
+                                   , Cmd.none
+                                   )
+          in
+            ( { mod | url = url }
+            , cmd
+            )
+
+parseUrl : Url.Url -> Maybe Int
+parseUrl = P.parse (P.s "list" </> P.int)
+
+buildUrl : String -> String
+buildUrl filename = Url.Builder.absolute ["list", filename] []
 
 -- Subscriptions
 
@@ -97,24 +154,34 @@ fileToString file =
     file.name
 
 
-view : Model -> Html Msg
+view : Model -> Browser.Document Msg
 view model =
     case model.status of
         Index ->
-            div []
+          { title = "Index"
+            , body =
+              [div []
                 [ h1 [] [ text "Books I've Read" ]
                 , svg_main (List.map fileToString model.fileList) model.shouldAnimate
                 ]
+              ]
+          }
 
         _ ->
-            div [] [ viewCsv model ]
+          { title = (case model.file of
+                        Just f -> f.name
+                        Nothing -> "...")
+
+            , body =
+              [div [] [ viewCsv model ]]
+          }
 
 
 viewCsv : Model -> Html Msg
 viewCsv model =
     case model.status of
         Failure err ->
-            div [] [ text ("Couldn't Load" ++ err) ]
+            div [] [ text ("Couldn't Load:\t" ++ err) ]
 
         Success csv ->
             div [] [ displayRList csv model.file ]
@@ -194,6 +261,7 @@ formatFileName file =
 displayRList : List ReadRow -> Maybe File -> Html Msg
 displayRList csv file =
     div [ style "margin" "auto" ]
+        -- [ yearView (parseCSV csv)
         [ h1 [ style "text-align" "center" ] [ text <| "Read in: " ++ formatFileName file ]
         , div [ style "display" "flex", style "flex-direction" "column", style "width" "75%", style "margin" "auto" ] (classDiv "header" "Book Title" "Book Info" "Date Finished" :: List.indexedMap mapToRowDiv csv)
         , div [ style "text-align" "center" ] [ button [ onClick Return ] [ text "Go back" ] ]
@@ -203,11 +271,13 @@ displayRList csv file =
 
 -- Http
 
+csvUrlBuilder : String -> String
+csvUrlBuilder filename = Url.Builder.absolute [filename] []
 
 getCSVReq : String -> Cmd Msg
 getCSVReq filename =
     Http.get
-        { url = filename
+        { url = csvUrlBuilder filename
         , expect = Http.expectString GotCSV
         }
 

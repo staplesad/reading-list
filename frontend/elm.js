@@ -4532,6 +4532,23 @@ function _Http_track(router, xhr, tracker)
 	});
 }
 
+function _Url_percentEncode(string)
+{
+	return encodeURIComponent(string);
+}
+
+function _Url_percentDecode(string)
+{
+	try
+	{
+		return $elm$core$Maybe$Just(decodeURIComponent(string));
+	}
+	catch (e)
+	{
+		return $elm$core$Maybe$Nothing;
+	}
+}
+
 
 
 // STRINGS
@@ -4660,6 +4677,12 @@ var _Parser_findSubString = F5(function(smallString, offset, row, col, bigString
 
 	return _Utils_Tuple3(newOffset, row, col);
 });
+var $author$project$Messaging$LinkClicked = function (a) {
+	return {$: 'LinkClicked', a: a};
+};
+var $author$project$Messaging$UrlChanged = function (a) {
+	return {$: 'UrlChanged', a: a};
+};
 var $elm$core$Basics$EQ = {$: 'EQ'};
 var $elm$core$Basics$GT = {$: 'GT'};
 var $elm$core$Basics$LT = {$: 'LT'};
@@ -5448,12 +5471,14 @@ var $elm$core$Task$perform = F2(
 			$elm$core$Task$Perform(
 				A2($elm$core$Task$map, toMessage, task)));
 	});
-var $elm$browser$Browser$element = _Browser_element;
+var $elm$browser$Browser$application = _Browser_application;
 var $author$project$Messaging$Loading = {$: 'Loading'};
-var $author$project$Messaging$Model = F4(
-	function (status, shouldAnimate, file, fileList) {
-		return {file: file, fileList: fileList, shouldAnimate: shouldAnimate, status: status};
+var $author$project$Messaging$Model = F7(
+	function (status, shouldAnimate, file, fileList, url, key, csvs) {
+		return {csvs: csvs, file: file, fileList: fileList, key: key, shouldAnimate: shouldAnimate, status: status, url: url};
 	});
+var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
+var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
 var $author$project$Messaging$GotFileList = function (a) {
 	return {$: 'GotFileList', a: a};
 };
@@ -5477,8 +5502,6 @@ var $elm$http$Http$Sending = function (a) {
 	return {$: 'Sending', a: a};
 };
 var $elm$http$Http$Timeout_ = {$: 'Timeout_'};
-var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
-var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
 var $elm$core$Maybe$isJust = function (maybe) {
 	if (maybe.$ === 'Just') {
 		return true;
@@ -6252,11 +6275,12 @@ var $author$project$Main$getFileList = $elm$http$Http$get(
 		expect: A2($elm$http$Http$expectJson, $author$project$Messaging$GotFileList, $author$project$Main$fileDecoder),
 		url: '/files.json'
 	});
-var $author$project$Main$init = function (_v0) {
-	return _Utils_Tuple2(
-		A4($author$project$Messaging$Model, $author$project$Messaging$Loading, true, $elm$core$Maybe$Nothing, _List_Nil),
-		$author$project$Main$getFileList);
-};
+var $author$project$Main$init = F3(
+	function (flags, url, key) {
+		return _Utils_Tuple2(
+			A7($author$project$Messaging$Model, $author$project$Messaging$Loading, true, $elm$core$Maybe$Nothing, _List_Nil, url, key, $elm$core$Dict$empty),
+			$author$project$Main$getFileList);
+	});
 var $elm$core$Platform$Sub$batch = _Platform_batch;
 var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
 var $author$project$Main$subscriptions = function (_v0) {
@@ -6272,8 +6296,41 @@ var $author$project$Messaging$Index = {$: 'Index'};
 var $author$project$Messaging$Success = function (a) {
 	return {$: 'Success', a: a};
 };
+var $elm$url$Url$Builder$toQueryPair = function (_v0) {
+	var key = _v0.a;
+	var value = _v0.b;
+	return key + ('=' + value);
+};
+var $elm$url$Url$Builder$toQuery = function (parameters) {
+	if (!parameters.b) {
+		return '';
+	} else {
+		return '?' + A2(
+			$elm$core$String$join,
+			'&',
+			A2($elm$core$List$map, $elm$url$Url$Builder$toQueryPair, parameters));
+	}
+};
+var $elm$url$Url$Builder$absolute = F2(
+	function (pathSegments, parameters) {
+		return '/' + (A2($elm$core$String$join, '/', pathSegments) + $elm$url$Url$Builder$toQuery(parameters));
+	});
+var $author$project$Main$buildUrl = function (filename) {
+	return A2(
+		$elm$url$Url$Builder$absolute,
+		_List_fromArray(
+			['list', filename]),
+		_List_Nil);
+};
 var $author$project$Messaging$GotCSV = function (a) {
 	return {$: 'GotCSV', a: a};
+};
+var $author$project$Main$csvUrlBuilder = function (filename) {
+	return A2(
+		$elm$url$Url$Builder$absolute,
+		_List_fromArray(
+			[filename]),
+		_List_Nil);
 };
 var $elm$http$Http$expectString = function (toMsg) {
 	return A2(
@@ -6285,7 +6342,7 @@ var $author$project$Main$getCSVReq = function (filename) {
 	return $elm$http$Http$get(
 		{
 			expect: $elm$http$Http$expectString($author$project$Messaging$GotCSV),
-			url: filename
+			url: $author$project$Main$csvUrlBuilder(filename)
 		});
 };
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
@@ -7347,6 +7404,222 @@ var $author$project$Messaging$parseCsv = function (str) {
 				])),
 		str);
 };
+var $elm$url$Url$Parser$Parser = function (a) {
+	return {$: 'Parser', a: a};
+};
+var $elm$url$Url$Parser$State = F5(
+	function (visited, unvisited, params, frag, value) {
+		return {frag: frag, params: params, unvisited: unvisited, value: value, visited: visited};
+	});
+var $elm$url$Url$Parser$custom = F2(
+	function (tipe, stringToSomething) {
+		return $elm$url$Url$Parser$Parser(
+			function (_v0) {
+				var visited = _v0.visited;
+				var unvisited = _v0.unvisited;
+				var params = _v0.params;
+				var frag = _v0.frag;
+				var value = _v0.value;
+				if (!unvisited.b) {
+					return _List_Nil;
+				} else {
+					var next = unvisited.a;
+					var rest = unvisited.b;
+					var _v2 = stringToSomething(next);
+					if (_v2.$ === 'Just') {
+						var nextValue = _v2.a;
+						return _List_fromArray(
+							[
+								A5(
+								$elm$url$Url$Parser$State,
+								A2($elm$core$List$cons, next, visited),
+								rest,
+								params,
+								frag,
+								value(nextValue))
+							]);
+					} else {
+						return _List_Nil;
+					}
+				}
+			});
+	});
+var $elm$url$Url$Parser$int = A2($elm$url$Url$Parser$custom, 'NUMBER', $elm$core$String$toInt);
+var $elm$url$Url$Parser$getFirstMatch = function (states) {
+	getFirstMatch:
+	while (true) {
+		if (!states.b) {
+			return $elm$core$Maybe$Nothing;
+		} else {
+			var state = states.a;
+			var rest = states.b;
+			var _v1 = state.unvisited;
+			if (!_v1.b) {
+				return $elm$core$Maybe$Just(state.value);
+			} else {
+				if ((_v1.a === '') && (!_v1.b.b)) {
+					return $elm$core$Maybe$Just(state.value);
+				} else {
+					var $temp$states = rest;
+					states = $temp$states;
+					continue getFirstMatch;
+				}
+			}
+		}
+	}
+};
+var $elm$url$Url$Parser$removeFinalEmpty = function (segments) {
+	if (!segments.b) {
+		return _List_Nil;
+	} else {
+		if ((segments.a === '') && (!segments.b.b)) {
+			return _List_Nil;
+		} else {
+			var segment = segments.a;
+			var rest = segments.b;
+			return A2(
+				$elm$core$List$cons,
+				segment,
+				$elm$url$Url$Parser$removeFinalEmpty(rest));
+		}
+	}
+};
+var $elm$url$Url$Parser$preparePath = function (path) {
+	var _v0 = A2($elm$core$String$split, '/', path);
+	if (_v0.b && (_v0.a === '')) {
+		var segments = _v0.b;
+		return $elm$url$Url$Parser$removeFinalEmpty(segments);
+	} else {
+		var segments = _v0;
+		return $elm$url$Url$Parser$removeFinalEmpty(segments);
+	}
+};
+var $elm$url$Url$Parser$addToParametersHelp = F2(
+	function (value, maybeList) {
+		if (maybeList.$ === 'Nothing') {
+			return $elm$core$Maybe$Just(
+				_List_fromArray(
+					[value]));
+		} else {
+			var list = maybeList.a;
+			return $elm$core$Maybe$Just(
+				A2($elm$core$List$cons, value, list));
+		}
+	});
+var $elm$url$Url$percentDecode = _Url_percentDecode;
+var $elm$url$Url$Parser$addParam = F2(
+	function (segment, dict) {
+		var _v0 = A2($elm$core$String$split, '=', segment);
+		if ((_v0.b && _v0.b.b) && (!_v0.b.b.b)) {
+			var rawKey = _v0.a;
+			var _v1 = _v0.b;
+			var rawValue = _v1.a;
+			var _v2 = $elm$url$Url$percentDecode(rawKey);
+			if (_v2.$ === 'Nothing') {
+				return dict;
+			} else {
+				var key = _v2.a;
+				var _v3 = $elm$url$Url$percentDecode(rawValue);
+				if (_v3.$ === 'Nothing') {
+					return dict;
+				} else {
+					var value = _v3.a;
+					return A3(
+						$elm$core$Dict$update,
+						key,
+						$elm$url$Url$Parser$addToParametersHelp(value),
+						dict);
+				}
+			}
+		} else {
+			return dict;
+		}
+	});
+var $elm$url$Url$Parser$prepareQuery = function (maybeQuery) {
+	if (maybeQuery.$ === 'Nothing') {
+		return $elm$core$Dict$empty;
+	} else {
+		var qry = maybeQuery.a;
+		return A3(
+			$elm$core$List$foldr,
+			$elm$url$Url$Parser$addParam,
+			$elm$core$Dict$empty,
+			A2($elm$core$String$split, '&', qry));
+	}
+};
+var $elm$url$Url$Parser$parse = F2(
+	function (_v0, url) {
+		var parser = _v0.a;
+		return $elm$url$Url$Parser$getFirstMatch(
+			parser(
+				A5(
+					$elm$url$Url$Parser$State,
+					_List_Nil,
+					$elm$url$Url$Parser$preparePath(url.path),
+					$elm$url$Url$Parser$prepareQuery(url.query),
+					url.fragment,
+					$elm$core$Basics$identity)));
+	});
+var $elm$url$Url$Parser$s = function (str) {
+	return $elm$url$Url$Parser$Parser(
+		function (_v0) {
+			var visited = _v0.visited;
+			var unvisited = _v0.unvisited;
+			var params = _v0.params;
+			var frag = _v0.frag;
+			var value = _v0.value;
+			if (!unvisited.b) {
+				return _List_Nil;
+			} else {
+				var next = unvisited.a;
+				var rest = unvisited.b;
+				return _Utils_eq(next, str) ? _List_fromArray(
+					[
+						A5(
+						$elm$url$Url$Parser$State,
+						A2($elm$core$List$cons, next, visited),
+						rest,
+						params,
+						frag,
+						value)
+					]) : _List_Nil;
+			}
+		});
+};
+var $elm$core$List$append = F2(
+	function (xs, ys) {
+		if (!ys.b) {
+			return xs;
+		} else {
+			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
+		}
+	});
+var $elm$core$List$concat = function (lists) {
+	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
+};
+var $elm$core$List$concatMap = F2(
+	function (f, list) {
+		return $elm$core$List$concat(
+			A2($elm$core$List$map, f, list));
+	});
+var $elm$url$Url$Parser$slash = F2(
+	function (_v0, _v1) {
+		var parseBefore = _v0.a;
+		var parseAfter = _v1.a;
+		return $elm$url$Url$Parser$Parser(
+			function (state) {
+				return A2(
+					$elm$core$List$concatMap,
+					parseAfter,
+					parseBefore(state));
+			});
+	});
+var $author$project$Main$parseUrl = $elm$url$Url$Parser$parse(
+	A2(
+		$elm$url$Url$Parser$slash,
+		$elm$url$Url$Parser$s('list'),
+		$elm$url$Url$Parser$int));
+var $elm$browser$Browser$Navigation$pushUrl = _Browser_pushUrl;
 var $author$project$Main$stringToFile = function (str) {
 	return $author$project$Messaging$File(str);
 };
@@ -7380,36 +7653,92 @@ var $author$project$Main$update = F2(
 				}
 			case 'GetCSV':
 				var filename = msg.a;
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{
-							file: $elm$core$Maybe$Just(
-								$author$project$Messaging$File(filename)),
-							status: $author$project$Messaging$Loading
-						}),
-					$author$project$Main$getCSVReq(filename));
-			case 'GotCSV':
-				var result = msg.a;
-				if (result.$ === 'Ok') {
-					var csv = result.a;
+				var csv = A2($elm$core$Dict$get, filename, model.csvs);
+				if (csv.$ === 'Just') {
+					var cached = csv.a;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
-								status: function () {
-									var _v3 = $author$project$Messaging$parseCsv(csv);
-									if (_v3.$ === 'Ok') {
-										var parsedCsv = _v3.a;
-										return $author$project$Messaging$Success(parsedCsv);
-									} else {
-										var err = _v3.a;
-										return $author$project$Messaging$Failure(
-											$elm$core$Debug$toString(err));
-									}
-								}()
+								file: $elm$core$Maybe$Just(
+									$author$project$Messaging$File(filename)),
+								status: $author$project$Messaging$Success(cached)
 							}),
-						$elm$core$Platform$Cmd$none);
+						A2(
+							$elm$browser$Browser$Navigation$pushUrl,
+							model.key,
+							$author$project$Main$buildUrl(filename)));
+				} else {
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{
+								file: $elm$core$Maybe$Just(
+									$author$project$Messaging$File(filename)),
+								status: $author$project$Messaging$Loading
+							}),
+						$author$project$Main$getCSVReq(filename));
+				}
+			case 'GotCSV':
+				var result = msg.a;
+				if (result.$ === 'Ok') {
+					var csv = result.a;
+					var res = function () {
+						var _v7 = $author$project$Messaging$parseCsv(csv);
+						if (_v7.$ === 'Ok') {
+							var parsedCsv = _v7.a;
+							return $author$project$Messaging$Success(parsedCsv);
+						} else {
+							var err = _v7.a;
+							return $author$project$Messaging$Failure(
+								$elm$core$Debug$toString(err));
+						}
+					}();
+					var filename = function () {
+						var _v6 = model.file;
+						if (_v6.$ === 'Just') {
+							var f = _v6.a;
+							return f.name;
+						} else {
+							return '...';
+						}
+					}();
+					switch (res.$) {
+						case 'Success':
+							var pres = res.a;
+							return _Utils_Tuple2(
+								_Utils_update(
+									model,
+									{
+										csvs: A3(
+											$elm$core$Dict$update,
+											filename,
+											function (_v5) {
+												return $elm$core$Maybe$Just(pres);
+											},
+											model.csvs),
+										status: res
+									}),
+								A2(
+									$elm$browser$Browser$Navigation$pushUrl,
+									model.key,
+									$author$project$Main$buildUrl(filename)));
+						case 'Failure':
+							return _Utils_Tuple2(
+								_Utils_update(
+									model,
+									{status: res}),
+								A2(
+									$elm$browser$Browser$Navigation$pushUrl,
+									model.key,
+									$author$project$Main$buildUrl(filename)));
+						default:
+							return _Utils_Tuple2(
+								_Utils_update(
+									model,
+									{status: res}),
+								$elm$core$Platform$Cmd$none);
+					}
 				} else {
 					var err = result.a;
 					return _Utils_Tuple2(
@@ -7421,10 +7750,60 @@ var $author$project$Main$update = F2(
 							}),
 						$elm$core$Platform$Cmd$none);
 				}
-			default:
+			case 'Return':
 				return _Utils_Tuple2(
-					A4($author$project$Messaging$Model, $author$project$Messaging$Index, false, $elm$core$Maybe$Nothing, model.fileList),
-					$elm$core$Platform$Cmd$none);
+					_Utils_update(
+						model,
+						{file: $elm$core$Maybe$Nothing, shouldAnimate: false, status: $author$project$Messaging$Index}),
+					A2(
+						$elm$browser$Browser$Navigation$pushUrl,
+						model.key,
+						A2($elm$url$Url$Builder$absolute, _List_Nil, _List_Nil)));
+			case 'LinkClicked':
+				var urlRequest = msg.a;
+				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+			default:
+				var url = msg.a;
+				var _v8 = function () {
+					var _v9 = $author$project$Main$parseUrl(url);
+					if (_v9.$ === 'Just') {
+						var year = _v9.a;
+						return _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{
+									file: $elm$core$Maybe$Just(
+										$author$project$Messaging$File(
+											$elm$core$Debug$toString(year))),
+									status: function () {
+										var _v10 = A2(
+											$elm$core$Dict$get,
+											$elm$core$Debug$toString(year),
+											model.csvs);
+										if (_v10.$ === 'Nothing') {
+											return $author$project$Messaging$Failure('not cached');
+										} else {
+											var csv = _v10.a;
+											return $author$project$Messaging$Success(csv);
+										}
+									}()
+								}),
+							$elm$core$Platform$Cmd$none);
+					} else {
+						return _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{file: $elm$core$Maybe$Nothing, shouldAnimate: false, status: $author$project$Messaging$Index}),
+							$elm$core$Platform$Cmd$none);
+					}
+				}();
+				var mod = _v8.a;
+				var cmd = _v8.b;
+				return _Utils_Tuple2(
+					_Utils_update(
+						mod,
+						{url: url}),
+					cmd);
 		}
 	});
 var $elm$html$Html$div = _VirtualDom_node('div');
@@ -7580,17 +7959,6 @@ var $author$project$Homepage$circle_group = F2(
 				A2($author$project$Homepage$text_N, n, filename)
 			]);
 	});
-var $elm$core$List$append = F2(
-	function (xs, ys) {
-		if (!ys.b) {
-			return xs;
-		} else {
-			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
-		}
-	});
-var $elm$core$List$concat = function (lists) {
-	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
-};
 var $author$project$Homepage$create_groups = function (filenames) {
 	return $elm$core$List$concat(
 		A2($elm$core$List$indexedMap, $author$project$Homepage$circle_group, filenames));
@@ -8447,7 +8815,7 @@ var $author$project$Main$viewCsv = function (model) {
 				_List_Nil,
 				_List_fromArray(
 					[
-						$elm$html$Html$text('Couldn\'t Load' + err)
+						$elm$html$Html$text('Couldn\'t Load:\t' + err)
 					]));
 		case 'Success':
 			var csv = _v0.a;
@@ -8465,34 +8833,54 @@ var $author$project$Main$viewCsv = function (model) {
 var $author$project$Main$view = function (model) {
 	var _v0 = model.status;
 	if (_v0.$ === 'Index') {
-		return A2(
-			$elm$html$Html$div,
-			_List_Nil,
-			_List_fromArray(
+		return {
+			body: _List_fromArray(
 				[
 					A2(
-					$elm$html$Html$h1,
+					$elm$html$Html$div,
 					_List_Nil,
 					_List_fromArray(
 						[
-							$elm$html$Html$text('Books I\'ve Read')
-						])),
-					A2(
-					$author$project$Homepage$svg_main,
-					A2($elm$core$List$map, $author$project$Main$fileToString, model.fileList),
-					model.shouldAnimate)
-				]));
+							A2(
+							$elm$html$Html$h1,
+							_List_Nil,
+							_List_fromArray(
+								[
+									$elm$html$Html$text('Books I\'ve Read')
+								])),
+							A2(
+							$author$project$Homepage$svg_main,
+							A2($elm$core$List$map, $author$project$Main$fileToString, model.fileList),
+							model.shouldAnimate)
+						]))
+				]),
+			title: 'Index'
+		};
 	} else {
-		return A2(
-			$elm$html$Html$div,
-			_List_Nil,
-			_List_fromArray(
+		return {
+			body: _List_fromArray(
 				[
-					$author$project$Main$viewCsv(model)
-				]));
+					A2(
+					$elm$html$Html$div,
+					_List_Nil,
+					_List_fromArray(
+						[
+							$author$project$Main$viewCsv(model)
+						]))
+				]),
+			title: function () {
+				var _v1 = model.file;
+				if (_v1.$ === 'Just') {
+					var f = _v1.a;
+					return f.name;
+				} else {
+					return '...';
+				}
+			}()
+		};
 	}
 };
-var $author$project$Main$main = $elm$browser$Browser$element(
-	{init: $author$project$Main$init, subscriptions: $author$project$Main$subscriptions, update: $author$project$Main$update, view: $author$project$Main$view});
+var $author$project$Main$main = $elm$browser$Browser$application(
+	{init: $author$project$Main$init, onUrlChange: $author$project$Messaging$UrlChanged, onUrlRequest: $author$project$Messaging$LinkClicked, subscriptions: $author$project$Main$subscriptions, update: $author$project$Main$update, view: $author$project$Main$view});
 _Platform_export({'Main':{'init':$author$project$Main$main(
 	$elm$json$Json$Decode$succeed(_Utils_Tuple0))(0)}});}(this));

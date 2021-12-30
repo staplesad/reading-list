@@ -1,4 +1,4 @@
-module NoteParser exposing (parse, stripString, formatReadingNote)
+module NoteParser exposing (parse, stripString, formatReadingNote, ReadingNote(..), noteEnum)
 
 import Debug exposing (toString)
 import Parser as P exposing ((|.), (|=), Parser, oneOf, succeed, symbol, token, variable)
@@ -6,7 +6,6 @@ import Set
 import String as S
 
 -- Parser
-
 
 type ReadingNote
     = Reread
@@ -19,6 +18,8 @@ type ReadingNote
     | Borrowed String
     | NoteError String
 
+noteEnum : List ReadingNote
+noteEnum = [Reread, ShortStoryCollection, ShortStory, NonFiction, GraphicNovel, Play, Poetry]
 
 cons : a -> List a -> List a
 cons x xs =
