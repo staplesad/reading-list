@@ -219,7 +219,7 @@ view model =
                 Nothing -> ""
                 Just f -> f.name
           in
-          { title = "Stats " ++ (toString model.file)
+          { title = "Stats " ++ filename
           , body = [viewStats filename stats]
           }
 

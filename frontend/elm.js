@@ -9377,7 +9377,7 @@ var $author$project$Main$view = function (model) {
 					[
 						A2($author$project$Main$viewStats, filename, stats)
 					]),
-				title: 'Stats ' + $elm$core$Debug$toString(model.file)
+				title: 'Stats ' + filename
 			};
 		default:
 			return {
