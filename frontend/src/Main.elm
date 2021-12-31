@@ -17,7 +17,7 @@ import Url.Parser as P exposing((</>))
 import Homepage exposing (svg_main)
 import Messaging exposing (File, Model, Msg(..), ReadRow, Status(..), parseCsv)
 import NoteParser exposing (..)
-import StatsViz exposing (parseCSV, yearView)
+import StatsViz exposing (yearView, getAllStats)
 -- Main
 
 
@@ -38,7 +38,8 @@ main =
 
 init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url key =
-    ( Model Loading True Nothing [] url key Dct.empty, getFileList )
+    ( Model Loading True Nothing [] url key Dct.empty Dct.empty
+    , getFileList )
 
 
 
@@ -60,6 +61,31 @@ update msg model =
 
                 Err err ->
                     ( { model | status = Failure <| toString err, fileList = [] }, Cmd.none )
+
+        GetStats ->
+          let
+              filename = case model.file of
+                Just f -> f.name
+                Nothing -> ""
+              stats = case filename of
+                "" -> Nothing
+                f -> case Dct.get f model.stats of
+                  Just cached -> Just cached
+                  Nothing -> case model.status of
+                    Success csv -> Just (getAllStats csv)
+                    _ -> Nothing
+              _ = log "filename" filename
+              _ = log "stats" <| toString stats
+              _ = log "model" <| toString model.status
+          in
+              case stats of
+              Just fileStats -> ( {model | status = ShowStats fileStats
+                                         , stats = (Dct.update filename (\_ -> Just fileStats) model.stats)
+                                         }
+                                , Nav.pushUrl model.key (buildSUrl filename)
+                                )
+              Nothing -> ( {model | status = Failure "can't find filename or cached csv"}
+                         , Cmd.none)
 
         GetCSV filename ->
           let
@@ -115,12 +141,26 @@ update msg model =
         UrlChanged url ->
           let
               (mod, cmd)  = case parseUrl url of
-                        Just year -> ( { model | file = Just (File (toString year))
-                                               , status =
-                                                 case Dct.get (toString year) model.csvs of
-                                                    Nothing -> Failure "not cached"
-                                                    Just csv -> Success csv}
-                                     , Cmd.none)
+                        Just year ->
+                          let
+                            _ = log "url" <| toString url.path
+                            _ = log "year" <| toString year
+                            str_parsed = (P.parse ((P.s "list") </> P.int) url)
+                            _ = log "url parsed" <| toString str_parsed
+                          in
+                                     if not (str_parsed == Nothing)
+                                     then ( { model | file = Just (File (toString year))
+                                                    , status =
+                                                       case Dct.get (toString year) model.csvs of
+                                                          Nothing -> Failure "list not cached"
+                                                          Just csv -> Success csv}
+                                          , Cmd.none)
+                                     else ( {model | file = Just (File (toString year))
+                                                  , status = case Dct.get (toString year) model.stats of
+                                                      Nothing -> Failure "stats not cached"
+                                                      Just stats -> ShowStats stats}
+                                          , Cmd.none)
+
                         Nothing -> ( { model | status = Index
                                              , shouldAnimate = False
                                              , file = Nothing }
@@ -132,10 +172,13 @@ update msg model =
             )
 
 parseUrl : Url.Url -> Maybe Int
-parseUrl = P.parse (P.s "list" </> P.int)
+parseUrl = P.parse (P.oneOf [P.s "list", P.s "stats"] </> P.int)
 
 buildUrl : String -> String
 buildUrl filename = Url.Builder.absolute ["list", filename] []
+
+buildSUrl : String -> String
+buildSUrl filename = Url.Builder.absolute ["stats", filename] []
 
 -- Subscriptions
 
@@ -156,6 +199,9 @@ fileToString file =
 
 view : Model -> Browser.Document Msg
 view model =
+  let
+      _ = log "debug view" <| toString model.status
+  in
     case model.status of
         Index ->
           { title = "Index"
@@ -165,6 +211,16 @@ view model =
                 , svg_main (List.map fileToString model.fileList) model.shouldAnimate
                 ]
               ]
+          }
+
+        ShowStats stats ->
+          let
+              filename = case model.file of
+                Nothing -> ""
+                Just f -> f.name
+          in
+          { title = "Stats " ++ (toString model.file)
+          , body = [viewStats filename stats]
           }
 
         _ ->
@@ -184,12 +240,16 @@ viewCsv model =
             div [] [ text ("Couldn't Load:\t" ++ err) ]
 
         Success csv ->
-            div [] [ displayRList csv model.file ]
+            div [] [ button [onClick GetStats] [text "Display Stats"]
+                   , displayRList csv model.file ]
 
         _ ->
             div [] []
 
-
+viewStats : String -> Messaging.AllStats -> Html Msg
+viewStats filename stats = div [] [ yearView filename stats
+                                  , div [ style "text-align" "center" ] [ button [ onClick Return ] [ text "Go back" ] ]
+                                  ]
 
 -- Format Csv
 
