@@ -7,3 +7,4 @@ elm-stuff/
 dist-newstyle/
 BuildDocker/
 book_lists/
+get_olid_data/*.json
