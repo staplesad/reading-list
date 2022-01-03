@@ -26,13 +26,18 @@ type alias ReadRow =
 type alias CSV =
     List ReadRow
 
-
+type alias BookId =
+  { title : String
+  , id : String
+  }
 type Status
     = Failure String
     | Index
     | Loading
     | Success CSV
     | ShowStats AllStats
+    | BookDisplay BookId
+
 
 
 type alias Model =
@@ -40,6 +45,7 @@ type alias Model =
     , shouldAnimate: Bool
     , file : Maybe File
     , fileList : List File
+    , idMap : Dict.Dict String (Maybe String)
     , url: Url.Url
     , key: Nav.Key
     , csvs: Dict.Dict String CSV
@@ -53,6 +59,9 @@ type alias Model =
 
 type Msg
     = GotFileList (Result Http.Error (List String))
+    | GotIdMap (Result Http.Error (Dict.Dict String (Maybe String)))
+    | GetBook String
+    | GotBook (Result Http.Error String)
     | GetStats
     | GetCSV String
     | GotCSV (Result Http.Error String)

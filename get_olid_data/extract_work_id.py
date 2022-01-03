@@ -12,9 +12,9 @@ def extract_work_id(search_res, title):
     return None
 
 def format_json(titles, keys):
-    json_obj = {'books': []}
+    json_obj = {}
     for t, k in zip(titles, keys):
-        json_obj['books'].append({'title': t, 'olid': k})
+        json_obj.update({t:k})
     with open("../title_to_olid.json", 'w') as fp:
         json.dump(json_obj, fp)
 
