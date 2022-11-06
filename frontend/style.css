@@ -2,10 +2,15 @@
   --main-bg-color: #EEAFAF;
 }
 
+a:hover {
+  display:block;
+}
+
 body {
   width: 100%;
   height: 100%;
   margin: 0;
+  font-family: monospace;
 }
 
 .path {
@@ -78,3 +83,15 @@ svg {
   padding-bottom: 10px;
 }
 
+.fakelink {
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  text-decoration: none;
+  color: black;
+}
+
+.fakelink:hover {
+  text-shadow: 0.15rem 0.15rem 4px #afeeee, 0.15rem 0.15rem 8px #ffffff
+}
