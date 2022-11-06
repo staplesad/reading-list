@@ -447,7 +447,7 @@ getCSVReq filename =
 getBookData : String -> String -> Cmd Msg
 getBookData title id =
   Http.get
-    { url = "http://openlibrary.org" ++ id ++".json"
+    { url = "https://openlibrary.org" ++ id ++".json"
     , expect = Http.expectString (GotBook title)
     }
 

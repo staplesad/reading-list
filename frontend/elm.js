@@ -7235,7 +7235,7 @@ var $author$project$Main$getBookData = F2(
 			{
 				expect: $elm$http$Http$expectString(
 					$author$project$Messaging$GotBook(title)),
-				url: 'http://openlibrary.org' + (id + '.json')
+				url: 'https://openlibrary.org' + (id + '.json')
 			});
 	});
 var $author$project$Messaging$GotCSV = function (a) {
