@@ -1,31 +1,13 @@
-module StatsViz exposing (parseCSV, yearView)
+module StatsViz exposing (yearView, getAllStats)
 
-import Dict exposing (Dict)
 import Debug exposing (toString)
+import Dict
 import Html exposing (div, Html, text, h1, p)
 import String as S
-import Messaging exposing (Msg, CSV, ReadRow)
+import Messaging exposing (Date, ParsedCSV, CSV, ReadRow, ParsedReadRow, MonthTotals, CSVStats, AllStats, Msg)
 import NoteParser exposing (ReadingNote(..), parse, stripString, noteEnum, formatReadingNote)
 
 
-type alias Date =
-  { year: Int
-  , month: Int
-  , day: Int
-  }
-
-type alias ParsedReadRow =
-  { book_title: String
-  , parsed_note : List ReadingNote
-  , date: Date
-  }
-
-type alias ParsedCSV =
-  List ParsedReadRow
-
-type alias MonthTotals = Dict (Int, String) Int
-
-type alias CSVStats = Dict String Int
 
 listToDate : List String -> Date
 listToDate ls =
@@ -87,16 +69,29 @@ formatMonth m
 totalMonths : ParsedCSV -> MonthTotals
 totalMonths csv = Dict.fromList (List.map2 Tuple.pair (List.map2 Tuple.pair (List.range 1 12) (List.map formatMonth (List.range 1 12))) (List.map (singleMonth (List.map (\n -> n.date) csv)) (List.range 1 12)))
 
-yearView : ParsedCSV -> Html Msg
-yearView csv = let
-                 dates = List.map formatDate csv
-                 counts = totalMonths csv
-                 emptyDates = List.sum (Dict.values counts)
-                 total = count csv
-                 gStats = Dict.fromList (List.map2 Tuple.pair (List.map formatReadingNote noteEnum) (List.map (totalType csv) noteEnum))
-               in
-                 div [] [ h1 [] [text "Stats"]
-                        , p [] [text <| S.join "\n" (List.map formatDate csv)]
-                        , p [] [ text <| "Month Totals: " ++ toString ( List.map2 Tuple.pair (Dict.keys counts) (Dict.values counts))]
-                        , p [] [ text <| "Month Totals: " ++ toString ( List.map2 Tuple.pair (Dict.keys gStats) (Dict.values gStats))]
-                        ]
+getAllStats : CSV -> AllStats
+getAllStats csv =
+  let
+   pcsv = parseCSV csv
+   counts = totalMonths pcsv
+   emptyDates = List.sum (Dict.values counts)
+   total = count pcsv
+   gStats = Dict.fromList (List.map2 Tuple.pair (List.map formatReadingNote noteEnum) (List.map (totalType pcsv) noteEnum))
+  in
+   case emptyDates of
+     0 -> AllStats total Nothing gStats
+     _ -> AllStats total (Just counts) gStats
+
+yearView : String -> AllStats -> Html Msg
+yearView year stats
+  = case stats.monthly of
+      Just monthly ->  div [] [ h1 [] [text <| "Stats: " ++ year]
+             , p [] [ text <| "Total read: " ++ toString (stats.total)]
+             , p [] [ text <| "Month Totals: " ++ toString ( List.map2 Tuple.pair (Dict.keys monthly) (Dict.values monthly))]
+             , p [] [ text <| "Type Totals: " ++ toString ( List.map2 Tuple.pair (Dict.keys stats.types) (Dict.values stats.types))]
+             ]
+      Nothing -> div [] [ h1 [] [text <| "Stats: " ++ year]
+             , p [] [ text <| "Total read: " ++ toString (stats.total)]
+             , p [] [ text <| "Type Totals: " ++ toString ( List.map2 Tuple.pair (Dict.keys stats.types) (Dict.values stats.types))]
+             ]
+

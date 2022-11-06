@@ -3,10 +3,10 @@ notes.md
 CHANGELOG.md
 relative_svg.html
 reading-list.cabal
-data/
-Dockerfile
+data/*
 heroku.yml
 elm-stuff/
 dist-newstyle/
 BuildDocker/
 book_lists/
+get_olid_data/*.json
