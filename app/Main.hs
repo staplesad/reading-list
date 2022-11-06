@@ -46,4 +46,3 @@ main = do
     get "/files.json" $ json $ sortFiles $ map formatFile fileList
     get "/olidMap.json" $ file "title_to_olid.json"
     traverse_ fileToRoute fileList
-

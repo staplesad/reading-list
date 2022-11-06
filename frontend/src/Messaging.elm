@@ -28,8 +28,9 @@ type alias CSV =
 
 type alias BookId =
   { title : String
-  , id : String
+  , data: Maybe String
   }
+
 type Status
     = Failure String
     | Index
@@ -50,6 +51,7 @@ type alias Model =
     , key: Nav.Key
     , csvs: Dict.Dict String CSV
     , stats: Dict.Dict String AllStats
+    , info: Dict.Dict String BookId
     }
 
 
@@ -61,7 +63,7 @@ type Msg
     = GotFileList (Result Http.Error (List String))
     | GotIdMap (Result Http.Error (Dict.Dict String (Maybe String)))
     | GetBook String
-    | GotBook (Result Http.Error String)
+    | GotBook String (Result Http.Error String)
     | GetStats
     | GetCSV String
     | GotCSV (Result Http.Error String)

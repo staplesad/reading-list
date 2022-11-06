@@ -44,7 +44,7 @@ init flags url key =
 
 
 emptyModel : Url.Url -> Nav.Key -> Model
-emptyModel url key = Model Loading True Nothing [] Dct.empty url key Dct.empty Dct.empty
+emptyModel url key = Model Loading True Nothing [] Dct.empty url key Dct.empty Dct.empty Dct.empty
 
 -- Update
 
@@ -101,21 +101,22 @@ update msg model =
 
         GetBook title ->
           ( { model | status = Loading}
-          , getBookData title -- map this to id
+          , getBookData title <| Maybe.withDefault "" (Maybe.withDefault (Just "") (Dct.get title model.idMap))
           )
 
-        GotBook result ->
+        GotBook title result ->
           let
               _ = log "library api" result
           in
             case result of
               Ok bookdata ->
                 let
-                    title = bookdata
-                    id = Maybe.withDefault ("no id") <| Maybe.withDefault (Just "no entry") (Dct.get title model.idMap)
+                    book = BookId title (Just bookdata)
                 in
-                  ( { model | status = BookDisplay (BookId title id)}
-                  , Cmd.none)
+                  ( { model | status = BookDisplay book
+                            , info = Dct.update title (\_ -> Just book) model.info}
+                  , Nav.pushUrl model.key (buildBUrl title)
+                  )
               Err err ->
                 ( { model | status = Failure <| ("GotBook failure\n" ++ toString err)
                   }
@@ -176,7 +177,6 @@ update msg model =
         UrlChanged url ->
           let
               parsedUrl = parseUrl url
-              _ = log "url changed" parsedUrl
               (mod, cmd)  = case parseUrl url of
                 Just (Rows year) ->
                   ( { model | file = Just (File (toString year))
@@ -192,8 +192,13 @@ update msg model =
                               Just stats -> ShowStats stats}
                   , Cmd.none)
                 Just (Book title) ->
-                  ({model | status = case Dct.get title model.idMap of
-                            Just (Just id) -> BookDisplay <| BookId title id
+                  let
+                    parsedTitle = case Url.percentDecode title of
+                      Just titleString -> titleString
+                      Nothing -> title
+                  in
+                  ({model | status = case Dct.get parsedTitle model.info of
+                            Just book -> BookDisplay book
                             _ -> Failure "can't find id"
                   }
                   , Cmd.none)
@@ -324,7 +329,10 @@ viewBook model =
     Failure err ->
       div [] [text ("Couldn't Load:\t"++ err)]
 
-    BookDisplay id -> div [] [text (id.title ++ "\n" ++ id.id)]
+    BookDisplay id -> 
+      case id.data of
+        Just d -> div [] [text (id.title ++ "\n" ++ d)]
+        Nothing -> div [] [text ("No data cached")]
 
     _ -> div [] []
 
@@ -382,12 +390,15 @@ rowDiv : String -> ReadRow -> Html Msg
 rowDiv classname csv =
     classDiv classname (toTitleCase csv.book_title) (String.join ", " (List.map formatReadingNote (parse csv.reading_note))) (formatDate csv.date)
 
+hasId : String -> Bool
+hasId book_title = True
 
 classDiv : String -> String -> String -> String -> Html Msg
 classDiv classname text1 text2 text3 =
     div [ style "display" "flex", style "flex-direction" "row", style "justify-content" "space-around" ]
         [ div [ class classname, style "width" "33%" ] [
           if classname /= "header"
+          && hasId (toLowerCase text1)
           then a [ class "fakelink"
                  , href (buildBUrl (toLowerCase text1) )
                  , onClick <| GetBook (toLowerCase text1)][text text1]
@@ -431,14 +442,14 @@ getCSVReq filename =
         , expect = Http.expectString GotCSV
         }
 
-run : msg -> Cmd msg
-run m =
-    Task.perform (always m) (Task.succeed ())
-
 -- will change title to id
 -- need to make call to Open Lib url
-getBookData : String -> Cmd Msg
-getBookData title = run (GotBook (Ok title))
+getBookData : String -> String -> Cmd Msg
+getBookData title id =
+  Http.get
+    { url = "http://openlibrary.org" ++ id ++".json"
+    , expect = Http.expectString (GotBook title)
+    }
 
 getFileList : Cmd Msg
 getFileList =

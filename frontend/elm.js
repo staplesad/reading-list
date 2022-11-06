@@ -5474,15 +5474,32 @@ var $elm$core$Task$perform = F2(
 var $elm$browser$Browser$application = _Browser_application;
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $author$project$Messaging$Loading = {$: 'Loading'};
-var $author$project$Messaging$Model = F9(
-	function (status, shouldAnimate, file, fileList, idMap, url, key, csvs, stats) {
-		return {csvs: csvs, file: file, fileList: fileList, idMap: idMap, key: key, shouldAnimate: shouldAnimate, stats: stats, status: status, url: url};
-	});
+var $author$project$Messaging$Model = function (status) {
+	return function (shouldAnimate) {
+		return function (file) {
+			return function (fileList) {
+				return function (idMap) {
+					return function (url) {
+						return function (key) {
+							return function (csvs) {
+								return function (stats) {
+									return function (info) {
+										return {csvs: csvs, file: file, fileList: fileList, idMap: idMap, info: info, key: key, shouldAnimate: shouldAnimate, stats: stats, status: status, url: url};
+									};
+								};
+							};
+						};
+					};
+				};
+			};
+		};
+	};
+};
 var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
 var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
 var $author$project$Main$emptyModel = F2(
 	function (url, key) {
-		return A9($author$project$Messaging$Model, $author$project$Messaging$Loading, true, $elm$core$Maybe$Nothing, _List_Nil, $elm$core$Dict$empty, url, key, $elm$core$Dict$empty, $elm$core$Dict$empty);
+		return $author$project$Messaging$Model($author$project$Messaging$Loading)(true)($elm$core$Maybe$Nothing)(_List_Nil)($elm$core$Dict$empty)(url)(key)($elm$core$Dict$empty)($elm$core$Dict$empty)($elm$core$Dict$empty);
 	});
 var $author$project$Messaging$GotFileList = function (a) {
 	return {$: 'GotFileList', a: a};
@@ -6336,8 +6353,8 @@ var $author$project$Messaging$BookDisplay = function (a) {
 	return {$: 'BookDisplay', a: a};
 };
 var $author$project$Messaging$BookId = F2(
-	function (title, id) {
-		return {id: id, title: title};
+	function (title, data) {
+		return {data: data, title: title};
 	});
 var $author$project$Messaging$Failure = function (a) {
 	return {$: 'Failure', a: a};
@@ -6371,6 +6388,13 @@ var $elm$url$Url$Builder$absolute = F2(
 	function (pathSegments, parameters) {
 		return '/' + (A2($elm$core$String$join, '/', pathSegments) + $elm$url$Url$Builder$toQuery(parameters));
 	});
+var $author$project$Main$buildBUrl = function (title) {
+	return A2(
+		$elm$url$Url$Builder$absolute,
+		_List_fromArray(
+			['book', title]),
+		_List_Nil);
+};
 var $author$project$Main$buildSUrl = function (filename) {
 	return A2(
 		$elm$url$Url$Builder$absolute,
@@ -7195,20 +7219,25 @@ var $author$project$StatsViz$getAllStats = function (csv) {
 			gStats);
 	}
 };
-var $author$project$Messaging$GotBook = function (a) {
-	return {$: 'GotBook', a: a};
-};
-var $author$project$Main$run = function (m) {
+var $author$project$Messaging$GotBook = F2(
+	function (a, b) {
+		return {$: 'GotBook', a: a, b: b};
+	});
+var $elm$http$Http$expectString = function (toMsg) {
 	return A2(
-		$elm$core$Task$perform,
-		$elm$core$Basics$always(m),
-		$elm$core$Task$succeed(_Utils_Tuple0));
+		$elm$http$Http$expectStringResponse,
+		toMsg,
+		$elm$http$Http$resolve($elm$core$Result$Ok));
 };
-var $author$project$Main$getBookData = function (title) {
-	return $author$project$Main$run(
-		$author$project$Messaging$GotBook(
-			$elm$core$Result$Ok(title)));
-};
+var $author$project$Main$getBookData = F2(
+	function (title, id) {
+		return $elm$http$Http$get(
+			{
+				expect: $elm$http$Http$expectString(
+					$author$project$Messaging$GotBook(title)),
+				url: 'http://openlibrary.org' + (id + '.json')
+			});
+	});
 var $author$project$Messaging$GotCSV = function (a) {
 	return {$: 'GotCSV', a: a};
 };
@@ -7218,12 +7247,6 @@ var $author$project$Main$csvUrlBuilder = function (filename) {
 		_List_fromArray(
 			[filename]),
 		_List_Nil);
-};
-var $elm$http$Http$expectString = function (toMsg) {
-	return A2(
-		$elm$http$Http$expectStringResponse,
-		toMsg,
-		$elm$http$Http$resolve($elm$core$Result$Ok));
 };
 var $author$project$Main$getCSVReq = function (filename) {
 	return $elm$http$Http$get(
@@ -8708,28 +8731,43 @@ var $author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{status: $author$project$Messaging$Loading}),
-					$author$project$Main$getBookData(title));
+					A2(
+						$author$project$Main$getBookData,
+						title,
+						A2(
+							$elm$core$Maybe$withDefault,
+							'',
+							A2(
+								$elm$core$Maybe$withDefault,
+								$elm$core$Maybe$Just(''),
+								A2($elm$core$Dict$get, title, model.idMap)))));
 			case 'GotBook':
-				var result = msg.a;
+				var title = msg.a;
+				var result = msg.b;
 				var _v9 = A2($elm$core$Debug$log, 'library api', result);
 				if (result.$ === 'Ok') {
 					var bookdata = result.a;
-					var title = bookdata;
-					var id = A2(
-						$elm$core$Maybe$withDefault,
-						'no id',
-						A2(
-							$elm$core$Maybe$withDefault,
-							$elm$core$Maybe$Just('no entry'),
-							A2($elm$core$Dict$get, title, model.idMap)));
+					var book = A2(
+						$author$project$Messaging$BookId,
+						title,
+						$elm$core$Maybe$Just(bookdata));
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
-								status: $author$project$Messaging$BookDisplay(
-									A2($author$project$Messaging$BookId, title, id))
+								info: A3(
+									$elm$core$Dict$update,
+									title,
+									function (_v11) {
+										return $elm$core$Maybe$Just(book);
+									},
+									model.info),
+								status: $author$project$Messaging$BookDisplay(book)
 							}),
-						$elm$core$Platform$Cmd$none);
+						A2(
+							$elm$browser$Browser$Navigation$pushUrl,
+							model.key,
+							$author$project$Main$buildBUrl(title)));
 				} else {
 					var err = result.a;
 					return _Utils_Tuple2(
@@ -8774,20 +8812,20 @@ var $author$project$Main$update = F2(
 				if (result.$ === 'Ok') {
 					var csv = result.a;
 					var res = function () {
-						var _v16 = $author$project$Messaging$parseCsv(csv);
-						if (_v16.$ === 'Ok') {
-							var parsedCsv = _v16.a;
+						var _v17 = $author$project$Messaging$parseCsv(csv);
+						if (_v17.$ === 'Ok') {
+							var parsedCsv = _v17.a;
 							return $author$project$Messaging$Success(parsedCsv);
 						} else {
-							var err = _v16.a;
+							var err = _v17.a;
 							return $author$project$Messaging$Failure(
 								$elm$core$Debug$toString(err));
 						}
 					}();
 					var filename = function () {
-						var _v15 = model.file;
-						if (_v15.$ === 'Just') {
-							var f = _v15.a;
+						var _v16 = model.file;
+						if (_v16.$ === 'Just') {
+							var f = _v16.a;
 							return f.name;
 						} else {
 							return '...';
@@ -8803,7 +8841,7 @@ var $author$project$Main$update = F2(
 										csvs: A3(
 											$elm$core$Dict$update,
 											filename,
-											function (_v14) {
+											function (_v15) {
 												return $elm$core$Maybe$Just(pres);
 											},
 											model.csvs),
@@ -8855,35 +8893,12 @@ var $author$project$Main$update = F2(
 			default:
 				var url = msg.a;
 				var parsedUrl = $author$project$Main$parseUrl(url);
-				var _v17 = function () {
-					var _v18 = $author$project$Main$parseUrl(url);
-					if (_v18.$ === 'Just') {
-						switch (_v18.a.$) {
+				var _v18 = function () {
+					var _v19 = $author$project$Main$parseUrl(url);
+					if (_v19.$ === 'Just') {
+						switch (_v19.a.$) {
 							case 'Rows':
-								var year = _v18.a.a;
-								return _Utils_Tuple2(
-									_Utils_update(
-										model,
-										{
-											file: $elm$core$Maybe$Just(
-												$author$project$Messaging$File(
-													$elm$core$Debug$toString(year))),
-											status: function () {
-												var _v19 = A2(
-													$elm$core$Dict$get,
-													$elm$core$Debug$toString(year),
-													model.csvs);
-												if (_v19.$ === 'Nothing') {
-													return $author$project$Messaging$Failure('list not cached');
-												} else {
-													var csv = _v19.a;
-													return $author$project$Messaging$Success(csv);
-												}
-											}()
-										}),
-									$elm$core$Platform$Cmd$none);
-							case 'Stats':
-								var year = _v18.a.a;
+								var year = _v19.a.a;
 								return _Utils_Tuple2(
 									_Utils_update(
 										model,
@@ -8895,28 +8910,59 @@ var $author$project$Main$update = F2(
 												var _v20 = A2(
 													$elm$core$Dict$get,
 													$elm$core$Debug$toString(year),
-													model.stats);
+													model.csvs);
 												if (_v20.$ === 'Nothing') {
+													return $author$project$Messaging$Failure('list not cached');
+												} else {
+													var csv = _v20.a;
+													return $author$project$Messaging$Success(csv);
+												}
+											}()
+										}),
+									$elm$core$Platform$Cmd$none);
+							case 'Stats':
+								var year = _v19.a.a;
+								return _Utils_Tuple2(
+									_Utils_update(
+										model,
+										{
+											file: $elm$core$Maybe$Just(
+												$author$project$Messaging$File(
+													$elm$core$Debug$toString(year))),
+											status: function () {
+												var _v21 = A2(
+													$elm$core$Dict$get,
+													$elm$core$Debug$toString(year),
+													model.stats);
+												if (_v21.$ === 'Nothing') {
 													return $author$project$Messaging$Failure('stats not cached');
 												} else {
-													var stats = _v20.a;
+													var stats = _v21.a;
 													return $author$project$Messaging$ShowStats(stats);
 												}
 											}()
 										}),
 									$elm$core$Platform$Cmd$none);
 							default:
-								var title = _v18.a.a;
+								var title = _v19.a.a;
+								var parsedTitle = function () {
+									var _v23 = $elm$url$Url$percentDecode(title);
+									if (_v23.$ === 'Just') {
+										var titleString = _v23.a;
+										return titleString;
+									} else {
+										return title;
+									}
+								}();
 								return _Utils_Tuple2(
 									_Utils_update(
 										model,
 										{
 											status: function () {
-												var _v21 = A2($elm$core$Dict$get, title, model.idMap);
-												if ((_v21.$ === 'Just') && (_v21.a.$ === 'Just')) {
-													var id = _v21.a.a;
-													return $author$project$Messaging$BookDisplay(
-														A2($author$project$Messaging$BookId, title, id));
+												var _v22 = A2($elm$core$Dict$get, parsedTitle, model.info);
+												if (_v22.$ === 'Just') {
+													var book = _v22.a;
+													return $author$project$Messaging$BookDisplay(book);
 												} else {
 													return $author$project$Messaging$Failure('can\'t find id');
 												}
@@ -8932,9 +8978,8 @@ var $author$project$Main$update = F2(
 							$elm$core$Platform$Cmd$none);
 					}
 				}();
-				var mod = _v17.a;
-				var cmd = _v17.b;
-				var _v22 = A2($elm$core$Debug$log, 'url changed', parsedUrl);
+				var mod = _v18.a;
+				var cmd = _v18.b;
 				return _Utils_Tuple2(
 					_Utils_update(
 						mod,
@@ -9186,13 +9231,25 @@ var $author$project$Main$viewBook = function (model) {
 					]));
 		case 'BookDisplay':
 			var id = _v0.a;
-			return A2(
-				$elm$html$Html$div,
-				_List_Nil,
-				_List_fromArray(
-					[
-						$elm$html$Html$text(id.title + ('\n' + id.id))
-					]));
+			var _v1 = id.data;
+			if (_v1.$ === 'Just') {
+				var d = _v1.a;
+				return A2(
+					$elm$html$Html$div,
+					_List_Nil,
+					_List_fromArray(
+						[
+							$elm$html$Html$text(id.title + ('\n' + d))
+						]));
+			} else {
+				return A2(
+					$elm$html$Html$div,
+					_List_Nil,
+					_List_fromArray(
+						[
+							$elm$html$Html$text('No data cached')
+						]));
+			}
 		default:
 			return A2($elm$html$Html$div, _List_Nil, _List_Nil);
 	}
@@ -9204,13 +9261,6 @@ var $author$project$Messaging$GetBook = function (a) {
 	return {$: 'GetBook', a: a};
 };
 var $elm$html$Html$a = _VirtualDom_node('a');
-var $author$project$Main$buildBUrl = function (title) {
-	return A2(
-		$elm$url$Url$Builder$absolute,
-		_List_fromArray(
-			['book', title]),
-		_List_Nil);
-};
 var $elm$json$Json$Encode$string = _Json_wrap;
 var $elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
@@ -9220,6 +9270,9 @@ var $elm$html$Html$Attributes$stringProperty = F2(
 			$elm$json$Json$Encode$string(string));
 	});
 var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
+var $author$project$Main$hasId = function (book_title) {
+	return true;
+};
 var $elm$html$Html$Attributes$href = function (url) {
 	return A2(
 		$elm$html$Html$Attributes$stringProperty,
@@ -9270,7 +9323,8 @@ var $author$project$Main$classDiv = F4(
 						]),
 					_List_fromArray(
 						[
-							(classname !== 'header') ? A2(
+							((classname !== 'header') && $author$project$Main$hasId(
+							$author$project$Main$toLowerCase(text1))) ? A2(
 							$elm$html$Html$a,
 							_List_fromArray(
 								[

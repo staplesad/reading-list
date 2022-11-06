@@ -39,6 +39,7 @@ def search_book_title(title, limit=10):
 if __name__ == '__main__':
     book_titles = []
     for file in glob('../data/*.csv'):
+        print(file)
         book_titles.extend(load_csv(file))
     book_titles = list(set(book_titles))
     print(len(book_titles))
