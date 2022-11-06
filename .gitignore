@@ -3,7 +3,7 @@ notes.md
 CHANGELOG.md
 relative_svg.html
 reading-list.cabal
-data/
+data/*
 Dockerfile
 heroku.yml
 elm-stuff/
